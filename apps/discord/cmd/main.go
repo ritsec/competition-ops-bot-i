@@ -24,9 +24,15 @@ func main() {
 	}
 	log.Println("session started")
 
-	// Wait for signal to stop bot
+	// Initialize MySQL DB connection
+	bot.InitDB()
+
+	// Wait for signal to close session and Ent client
 	<-ctx.Done()
 	if err := bot.Session.Close(); err != nil {
+		panic(err)
+	}
+	if err := bot.Client.Close(); err != nil {
 		panic(err)
 	}
 	log.Println("session stopped")
