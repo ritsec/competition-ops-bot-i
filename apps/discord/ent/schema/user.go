@@ -22,6 +22,8 @@ func (User) Fields() []ent.Field {
 // Edges of the User.
 func (User) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("team", Team.Type),
+		edge.From("team", Team.Type).
+			Ref("user").
+			Unique(), // each user belongs to ONE team
 	}
 }

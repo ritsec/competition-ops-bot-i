@@ -14,32 +14,32 @@ var (
 		{Name: "lead", Type: field.TypeString, Default: "none"},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"blue", "red", "black", "white", "purple"}, Default: "black"},
 		{Name: "number", Type: field.TypeInt, Nullable: true},
-		{Name: "user_team", Type: field.TypeInt, Nullable: true},
 	}
 	// TeamsTable holds the schema information for the "teams" table.
 	TeamsTable = &schema.Table{
 		Name:       "teams",
 		Columns:    TeamsColumns,
 		PrimaryKey: []*schema.Column{TeamsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "teams_users_team",
-				Columns:    []*schema.Column{TeamsColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "username", Type: field.TypeString, Default: "fb1589aa-d8dd-44d9-8057-2be857976beb"},
+		{Name: "username", Type: field.TypeString},
+		{Name: "team_user", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_teams_user",
+				Columns:    []*schema.Column{UsersColumns[2]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
@@ -49,5 +49,5 @@ var (
 )
 
 func init() {
-	TeamsTable.ForeignKeys[0].RefTable = UsersTable
+	UsersTable.ForeignKeys[0].RefTable = TeamsTable
 }

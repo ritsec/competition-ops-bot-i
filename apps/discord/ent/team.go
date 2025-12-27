@@ -21,9 +21,29 @@ type Team struct {
 	// Type of team
 	Type team.Type `json:"type,omitempty"`
 	// Team number
-	Number       int `json:"number,omitempty"`
-	user_team    *int
+	Number int `json:"number,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the TeamQuery when eager-loading is set.
+	Edges        TeamEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// TeamEdges holds the relations/edges for other nodes in the graph.
+type TeamEdges struct {
+	// User holds the value of the user edge.
+	User []*User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading.
+func (e TeamEdges) UserOrErr() ([]*User, error) {
+	if e.loadedTypes[0] {
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -35,8 +55,6 @@ func (*Team) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case team.FieldLead, team.FieldType:
 			values[i] = new(sql.NullString)
-		case team.ForeignKeys[0]: // user_team
-			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -76,13 +94,6 @@ func (_m *Team) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Number = int(value.Int64)
 			}
-		case team.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for edge-field user_team", value)
-			} else if value.Valid {
-				_m.user_team = new(int)
-				*_m.user_team = int(value.Int64)
-			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -94,6 +105,11 @@ func (_m *Team) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Team) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryUser queries the "user" edge of the Team entity.
+func (_m *Team) QueryUser() *UserQuery {
+	return NewTeamClient(_m.config).QueryUser(_m)
 }
 
 // Update returns a builder for updating this Team.

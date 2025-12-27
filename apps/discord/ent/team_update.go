@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
+	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
 
 // TeamUpdate is the builder for updating Team entities.
@@ -82,9 +83,45 @@ func (_u *TeamUpdate) ClearNumber() *TeamUpdate {
 	return _u
 }
 
+// AddUserIDs adds the "user" edge to the User entity by IDs.
+func (_u *TeamUpdate) AddUserIDs(ids ...int) *TeamUpdate {
+	_u.mutation.AddUserIDs(ids...)
+	return _u
+}
+
+// AddUser adds the "user" edges to the User entity.
+func (_u *TeamUpdate) AddUser(v ...*User) *TeamUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserIDs(ids...)
+}
+
 // Mutation returns the TeamMutation object of the builder.
 func (_u *TeamUpdate) Mutation() *TeamMutation {
 	return _u.mutation
+}
+
+// ClearUser clears all "user" edges to the User entity.
+func (_u *TeamUpdate) ClearUser() *TeamUpdate {
+	_u.mutation.ClearUser()
+	return _u
+}
+
+// RemoveUserIDs removes the "user" edge to User entities by IDs.
+func (_u *TeamUpdate) RemoveUserIDs(ids ...int) *TeamUpdate {
+	_u.mutation.RemoveUserIDs(ids...)
+	return _u
+}
+
+// RemoveUser removes "user" edges to User entities.
+func (_u *TeamUpdate) RemoveUser(v ...*User) *TeamUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -150,6 +187,51 @@ func (_u *TeamUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.NumberCleared() {
 		_spec.ClearField(team.FieldNumber, field.TypeInt)
+	}
+	if _u.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserIDs(); len(nodes) > 0 && !_u.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -226,9 +308,45 @@ func (_u *TeamUpdateOne) ClearNumber() *TeamUpdateOne {
 	return _u
 }
 
+// AddUserIDs adds the "user" edge to the User entity by IDs.
+func (_u *TeamUpdateOne) AddUserIDs(ids ...int) *TeamUpdateOne {
+	_u.mutation.AddUserIDs(ids...)
+	return _u
+}
+
+// AddUser adds the "user" edges to the User entity.
+func (_u *TeamUpdateOne) AddUser(v ...*User) *TeamUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddUserIDs(ids...)
+}
+
 // Mutation returns the TeamMutation object of the builder.
 func (_u *TeamUpdateOne) Mutation() *TeamMutation {
 	return _u.mutation
+}
+
+// ClearUser clears all "user" edges to the User entity.
+func (_u *TeamUpdateOne) ClearUser() *TeamUpdateOne {
+	_u.mutation.ClearUser()
+	return _u
+}
+
+// RemoveUserIDs removes the "user" edge to User entities by IDs.
+func (_u *TeamUpdateOne) RemoveUserIDs(ids ...int) *TeamUpdateOne {
+	_u.mutation.RemoveUserIDs(ids...)
+	return _u
+}
+
+// RemoveUser removes "user" edges to User entities.
+func (_u *TeamUpdateOne) RemoveUser(v ...*User) *TeamUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveUserIDs(ids...)
 }
 
 // Where appends a list predicates to the TeamUpdate builder.
@@ -324,6 +442,51 @@ func (_u *TeamUpdateOne) sqlSave(ctx context.Context) (_node *Team, err error) {
 	}
 	if _u.mutation.NumberCleared() {
 		_spec.ClearField(team.FieldNumber, field.TypeInt)
+	}
+	if _u.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedUserIDs(); len(nodes) > 0 && !_u.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Team{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -123,14 +123,14 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 			entry.Teammate5,
 		} {
 			// Create user and add to team
-			_, err := b.Client.User.
+			u, err := b.Client.User.
 				Create().
 				SetUsername(username).
-				AddTeam(t).
 				Save(b.ClientCtx)
 			if err != nil {
 				return err
 			}
+			t.Update().AddUser(u).Save(b.ClientCtx)
 		}
 		log.Println(entry)
 	}

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -25,6 +24,7 @@ type UserQuery struct {
 	inters     []Interceptor
 	predicates []predicate.User
 	withTeam   *TeamQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,7 +75,7 @@ func (_q *UserQuery) QueryTeam() *TeamQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(team.Table, team.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.TeamTable, user.TeamColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.TeamTable, user.TeamColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -370,11 +370,18 @@ func (_q *UserQuery) prepareQuery(ctx context.Context) error {
 func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, error) {
 	var (
 		nodes       = []*User{}
+		withFKs     = _q.withFKs
 		_spec       = _q.querySpec()
 		loadedTypes = [1]bool{
 			_q.withTeam != nil,
 		}
 	)
+	if _q.withTeam != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*User).scanValues(nil, columns)
 	}
@@ -394,9 +401,8 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		return nodes, nil
 	}
 	if query := _q.withTeam; query != nil {
-		if err := _q.loadTeam(ctx, query, nodes,
-			func(n *User) { n.Edges.Team = []*Team{} },
-			func(n *User, e *Team) { n.Edges.Team = append(n.Edges.Team, e) }); err != nil {
+		if err := _q.loadTeam(ctx, query, nodes, nil,
+			func(n *User, e *Team) { n.Edges.Team = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -404,33 +410,34 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 }
 
 func (_q *UserQuery) loadTeam(ctx context.Context, query *TeamQuery, nodes []*User, init func(*User), assign func(*User, *Team)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*User)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*User)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
+		if nodes[i].team_user == nil {
+			continue
 		}
+		fk := *nodes[i].team_user
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.Team(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(user.TeamColumn), fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(team.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.user_team
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "user_team" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "user_team" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "team_user" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }

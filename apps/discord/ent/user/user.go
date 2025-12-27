@@ -19,18 +19,24 @@ const (
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// TeamTable is the table that holds the team relation/edge.
-	TeamTable = "teams"
+	TeamTable = "users"
 	// TeamInverseTable is the table name for the Team entity.
 	// It exists in this package in order to avoid circular dependency with the "team" package.
 	TeamInverseTable = "teams"
 	// TeamColumn is the table column denoting the team relation/edge.
-	TeamColumn = "user_team"
+	TeamColumn = "team_user"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldUsername,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "users"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"team_user",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -40,13 +46,13 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
-
-var (
-	// DefaultUsername holds the default value on creation for the "username" field.
-	DefaultUsername string
-)
 
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
@@ -61,23 +67,16 @@ func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
 }
 
-// ByTeamCount orders the results by team count.
-func ByTeamCount(opts ...sql.OrderTermOption) OrderOption {
+// ByTeamField orders the results by team field.
+func ByTeamField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTeamStep(), opts...)
-	}
-}
-
-// ByTeam orders the results by team terms.
-func ByTeam(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTeamStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newTeamStep(), sql.OrderByField(field, opts...))
 	}
 }
 func newTeamStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TeamInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TeamTable, TeamColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, TeamTable, TeamColumn),
 	)
 }

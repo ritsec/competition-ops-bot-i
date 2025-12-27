@@ -315,6 +315,22 @@ func (c *TeamClient) GetX(ctx context.Context, id int) *Team {
 	return obj
 }
 
+// QueryUser queries the user edge of a Team.
+func (c *TeamClient) QueryUser(_m *Team) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, team.UserTable, team.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *TeamClient) Hooks() []Hook {
 	return c.hooks.Team
@@ -456,7 +472,7 @@ func (c *UserClient) QueryTeam(_m *User) *TeamQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(team.Table, team.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.TeamTable, user.TeamColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.TeamTable, user.TeamColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil

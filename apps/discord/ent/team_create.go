@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
+	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
 
 // TeamCreate is the builder for creating a Team entity.
@@ -59,6 +60,21 @@ func (_c *TeamCreate) SetNillableNumber(v *int) *TeamCreate {
 		_c.SetNumber(*v)
 	}
 	return _c
+}
+
+// AddUserIDs adds the "user" edge to the User entity by IDs.
+func (_c *TeamCreate) AddUserIDs(ids ...int) *TeamCreate {
+	_c.mutation.AddUserIDs(ids...)
+	return _c
+}
+
+// AddUser adds the "user" edges to the User entity.
+func (_c *TeamCreate) AddUser(v ...*User) *TeamCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddUserIDs(ids...)
 }
 
 // Mutation returns the TeamMutation object of the builder.
@@ -156,6 +172,22 @@ func (_c *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Number(); ok {
 		_spec.SetField(team.FieldNumber, field.TypeInt, value)
 		_node.Number = value
+	}
+	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.UserTable,
+			Columns: []string{team.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

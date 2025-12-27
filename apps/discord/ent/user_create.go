@@ -26,27 +26,23 @@ func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	return _c
 }
 
-// SetNillableUsername sets the "username" field if the given value is not nil.
-func (_c *UserCreate) SetNillableUsername(v *string) *UserCreate {
-	if v != nil {
-		_c.SetUsername(*v)
+// SetTeamID sets the "team" edge to the Team entity by ID.
+func (_c *UserCreate) SetTeamID(id int) *UserCreate {
+	_c.mutation.SetTeamID(id)
+	return _c
+}
+
+// SetNillableTeamID sets the "team" edge to the Team entity by ID if the given value is not nil.
+func (_c *UserCreate) SetNillableTeamID(id *int) *UserCreate {
+	if id != nil {
+		_c = _c.SetTeamID(*id)
 	}
 	return _c
 }
 
-// AddTeamIDs adds the "team" edge to the Team entity by IDs.
-func (_c *UserCreate) AddTeamIDs(ids ...int) *UserCreate {
-	_c.mutation.AddTeamIDs(ids...)
-	return _c
-}
-
-// AddTeam adds the "team" edges to the Team entity.
-func (_c *UserCreate) AddTeam(v ...*Team) *UserCreate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddTeamIDs(ids...)
+// SetTeam sets the "team" edge to the Team entity.
+func (_c *UserCreate) SetTeam(v *Team) *UserCreate {
+	return _c.SetTeamID(v.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -56,7 +52,6 @@ func (_c *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
-	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -79,14 +74,6 @@ func (_c *UserCreate) Exec(ctx context.Context) error {
 func (_c *UserCreate) ExecX(ctx context.Context) {
 	if err := _c.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (_c *UserCreate) defaults() {
-	if _, ok := _c.mutation.Username(); !ok {
-		v := user.DefaultUsername
-		_c.mutation.SetUsername(v)
 	}
 }
 
@@ -127,8 +114,8 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
 			Table:   user.TeamTable,
 			Columns: []string{user.TeamColumn},
 			Bidi:    false,
@@ -139,6 +126,7 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.team_user = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -162,7 +150,6 @@ func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
 				if !ok {

@@ -128,7 +128,7 @@ func HasTeam() predicate.User {
 	return predicate.User(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, TeamTable, TeamColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, TeamTable, TeamColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
