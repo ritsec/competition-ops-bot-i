@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -85,6 +86,8 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 			switch team {
 			case "Blue":
 				b.handleBlue(entries)
+			case "Red":
+				b.handleRed(entries)
 			}
 		}
 }
@@ -138,6 +141,52 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 	return nil
 }
 
+// Query DB for Red teamers
+func (b *Bot) handleRed(entries []*Entry) error {
+	// Check if Red team exists
+	t, err := b.Client.Team.
+		Query().
+		Where(team.TypeEQ("red")).
+		Only(b.ClientCtx)
+	if err != nil { // Create Red team if it doesn't exist
+		log.Println("creating Red team")
+
+		t, err = b.Client.Team.
+			Create().
+			SetType("red").
+			Save(b.ClientCtx)
+	}
+	var leads []string
+	for _, entry := range entries {
+		// Create user from Members column and add them to Red team
+		if entry.Members != "" {
+			u, err := b.Client.User.
+				Create().
+				SetUsername(entry.Members).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
+			t.Update().AddUser(u).Save(b.ClientCtx)
+		}
+		// Create user from Leads column and add them to Red team
+		if entry.Leads != "" {
+			u, err := b.Client.User.
+				Create().
+				SetUsername(entry.Leads).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
+			t.Update().AddUser(u).Save(b.ClientCtx)
+			leads = append(leads, entry.Leads) // Add to leads array
+		}
+	}
+	t.Update().SetLead(strings.Join(leads, ",")) // Set leads field of team to be a comma separated list
+
+	return nil
+}
+
 func fileHandler(URL string) ([]*Entry, error) {
 	// Create temp file
 	filename := fmt.Sprintf("download-%s.csv", time.Now())
@@ -169,6 +218,7 @@ func fileHandler(URL string) ([]*Entry, error) {
 		return nil, err
 	}
 
+	// Unmarshal file based on Entry struct
 	var entries []*Entry
 	if unmarshalError := gocsv.UnmarshalFile(temp, &entries); unmarshalError != nil {
 		panic(unmarshalError)
