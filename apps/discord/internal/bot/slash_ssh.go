@@ -1,4 +1,4 @@
-package slash
+package bot
 
 import (
 	"log"
@@ -26,10 +26,10 @@ func SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discord
 			},
 		},
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			ssOption := i.ApplicationCommandData().Options[0].StringValue()
+			choice := i.ApplicationCommandData().Options[0].StringValue()
 
-			if ssOption == "Add" {
-				log.Println("received /SSH Add slash command")
+			if choice == "Add" {
+				log.Println("received /SSH Add command")
 			} else {
 				return
 			}

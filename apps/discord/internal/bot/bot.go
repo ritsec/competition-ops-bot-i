@@ -1,18 +1,19 @@
 package bot
 
 import (
+	"context"
 	"log"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent"
-	"github.com/ritsec/competition-ops-bot-i/internal/commands/slash"
 	"github.com/ritsec/competition-ops-bot-i/internal/connections"
 )
 
 type Bot struct {
-	Session *discordgo.Session
-	Client  *ent.Client
+	Session   *discordgo.Session
+	Client    *ent.Client
+	ClientCtx context.Context
 }
 
 var (
@@ -39,7 +40,8 @@ func (b *Bot) Start() {
 	b.Session = session
 
 	// Populate the SlashCommands map
-	slashCommands["ssh"] = slash.SSH
+	slashCommands["ssh"] = SSH
+	slashCommands["team"] = Team
 
 	// Register slash commands
 	b.registerSlashCommands()
@@ -62,7 +64,7 @@ func (b *Bot) Start() {
 
 // InitDB will connect to the MySQL database and set the global Client
 func (b *Bot) InitDB() {
-	b.Client = connections.Connect()
+	b.Client, b.ClientCtx = connections.Connect()
 }
 
 func (b *Bot) registerSlashCommands() {
