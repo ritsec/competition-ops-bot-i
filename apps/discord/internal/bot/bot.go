@@ -42,6 +42,7 @@ func (b *Bot) Start() {
 	// Populate the SlashCommands map
 	slashCommands["ssh"] = SSH
 	slashCommands["team"] = b.Team
+	slashCommands["refresh"] = b.Refresh
 
 	// Register slash commands
 	b.registerSlashCommands()
