@@ -61,6 +61,8 @@ func (b *Bot) Start() {
 			}
 		}
 	})
+
+	b.Session.AddHandler(b.Join)
 }
 
 // InitDB will connect to the MySQL database and set the global Client

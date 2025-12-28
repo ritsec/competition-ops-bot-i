@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -10,11 +11,33 @@ import (
 func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	username := strings.ToLower(m.User.Username)
 
-	_, err := b.Client.User.
+	// Query Ent for user
+	u, err := b.Client.User.
 		Query().
 		Where(user.Username(username)).
 		Only(b.ClientCtx)
 	if err != nil {
-		panic(err) // TODO: Give a user a role to see a channel where they can request roles
+		log.Printf("user %s is not in database", username)
+		return // TODO: Give a user a role to see a channel where they can request roles
+	}
+
+	// Get user's team
+	t, err := u.QueryTeam().All(b.ClientCtx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Get roles from team
+	roles, err := t[0].QueryRole().All(b.ClientCtx)
+	if err != nil {
+		panic(err)
+	}
+
+	// Assign roles from team
+	for _, r := range roles {
+		err := b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, r.ID)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }

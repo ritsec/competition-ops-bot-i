@@ -32,6 +32,11 @@ type Entry struct {
 	Leads   string `csv:"Leads"`
 }
 
+var defaultRole = map[string]string{
+	"blue": "Blue Team",
+	"red":  "Red Team",
+}
+
 func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
 			Name:        "team",
@@ -96,8 +101,6 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 
 // Query DB for Blue teamers
 func (b *Bot) handleBlue(entries []*Entry) error {
-	// Default role
-	var defaultRole = "Blue Team"
 
 	for _, entry := range entries {
 		num, err := strconv.Atoi(entry.TeamNum)
@@ -125,7 +128,7 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 		}
 		teamRole := fmt.Sprintf("Blue Team %d", num)
 		roles := []string{
-			defaultRole,
+			defaultRole["blue"],
 			teamRole,
 		}
 		if err := b.addRoles(t, roles...); err != nil {
@@ -158,8 +161,6 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 
 // Query DB for Red teamers
 func (b *Bot) handleRed(entries []*Entry) error {
-	// Default roles
-	var defaultRole = "Red Team"
 
 	// Check if Red team exists
 	t, err := b.Client.Team.
@@ -176,7 +177,7 @@ func (b *Bot) handleRed(entries []*Entry) error {
 	}
 
 	roles := []string{
-		defaultRole,
+		defaultRole["red"],
 	}
 	if err := b.addRoles(t, roles...); err != nil {
 		log.Fatal(err)
