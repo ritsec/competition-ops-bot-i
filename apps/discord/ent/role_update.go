@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
+	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
 // RoleUpdate is the builder for updating Role entities.
@@ -41,9 +42,45 @@ func (_u *RoleUpdate) SetNillableName(v *string) *RoleUpdate {
 	return _u
 }
 
+// AddTeamIDs adds the "team" edge to the Team entity by IDs.
+func (_u *RoleUpdate) AddTeamIDs(ids ...int) *RoleUpdate {
+	_u.mutation.AddTeamIDs(ids...)
+	return _u
+}
+
+// AddTeam adds the "team" edges to the Team entity.
+func (_u *RoleUpdate) AddTeam(v ...*Team) *RoleUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTeamIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (_u *RoleUpdate) Mutation() *RoleMutation {
 	return _u.mutation
+}
+
+// ClearTeam clears all "team" edges to the Team entity.
+func (_u *RoleUpdate) ClearTeam() *RoleUpdate {
+	_u.mutation.ClearTeam()
+	return _u
+}
+
+// RemoveTeamIDs removes the "team" edge to Team entities by IDs.
+func (_u *RoleUpdate) RemoveTeamIDs(ids ...int) *RoleUpdate {
+	_u.mutation.RemoveTeamIDs(ids...)
+	return _u
+}
+
+// RemoveTeam removes "team" edges to Team entities.
+func (_u *RoleUpdate) RemoveTeam(v ...*Team) *RoleUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTeamIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -85,6 +122,51 @@ func (_u *RoleUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
 	}
+	if _u.mutation.TeamCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTeamIDs(); len(nodes) > 0 && !_u.mutation.TeamCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TeamIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{role.Label}
@@ -119,9 +201,45 @@ func (_u *RoleUpdateOne) SetNillableName(v *string) *RoleUpdateOne {
 	return _u
 }
 
+// AddTeamIDs adds the "team" edge to the Team entity by IDs.
+func (_u *RoleUpdateOne) AddTeamIDs(ids ...int) *RoleUpdateOne {
+	_u.mutation.AddTeamIDs(ids...)
+	return _u
+}
+
+// AddTeam adds the "team" edges to the Team entity.
+func (_u *RoleUpdateOne) AddTeam(v ...*Team) *RoleUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddTeamIDs(ids...)
+}
+
 // Mutation returns the RoleMutation object of the builder.
 func (_u *RoleUpdateOne) Mutation() *RoleMutation {
 	return _u.mutation
+}
+
+// ClearTeam clears all "team" edges to the Team entity.
+func (_u *RoleUpdateOne) ClearTeam() *RoleUpdateOne {
+	_u.mutation.ClearTeam()
+	return _u
+}
+
+// RemoveTeamIDs removes the "team" edge to Team entities by IDs.
+func (_u *RoleUpdateOne) RemoveTeamIDs(ids ...int) *RoleUpdateOne {
+	_u.mutation.RemoveTeamIDs(ids...)
+	return _u
+}
+
+// RemoveTeam removes "team" edges to Team entities.
+func (_u *RoleUpdateOne) RemoveTeam(v ...*Team) *RoleUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveTeamIDs(ids...)
 }
 
 // Where appends a list predicates to the RoleUpdate builder.
@@ -192,6 +310,51 @@ func (_u *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) {
 	}
 	if value, ok := _u.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
+	}
+	if _u.mutation.TeamCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedTeamIDs(); len(nodes) > 0 && !_u.mutation.TeamCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.TeamIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Role{config: _u.config}
 	_spec.Assign = _node.assignValues

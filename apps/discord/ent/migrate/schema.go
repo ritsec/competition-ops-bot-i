@@ -52,14 +52,42 @@ var (
 			},
 		},
 	}
+	// TeamRoleColumns holds the columns for the "team_role" table.
+	TeamRoleColumns = []*schema.Column{
+		{Name: "team_id", Type: field.TypeInt},
+		{Name: "role_id", Type: field.TypeString},
+	}
+	// TeamRoleTable holds the schema information for the "team_role" table.
+	TeamRoleTable = &schema.Table{
+		Name:       "team_role",
+		Columns:    TeamRoleColumns,
+		PrimaryKey: []*schema.Column{TeamRoleColumns[0], TeamRoleColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "team_role_team_id",
+				Columns:    []*schema.Column{TeamRoleColumns[0]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "team_role_role_id",
+				Columns:    []*schema.Column{TeamRoleColumns[1]},
+				RefColumns: []*schema.Column{RolesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		RolesTable,
 		TeamsTable,
 		UsersTable,
+		TeamRoleTable,
 	}
 )
 
 func init() {
 	UsersTable.ForeignKeys[0].RefTable = TeamsTable
+	TeamRoleTable.ForeignKeys[0].RefTable = TeamsTable
+	TeamRoleTable.ForeignKeys[1].RefTable = RolesTable
 }

@@ -32,9 +32,11 @@ type Team struct {
 type TeamEdges struct {
 	// User holds the value of the user edge.
 	User []*User `json:"user,omitempty"`
+	// Role holds the value of the role edge.
+	Role []*Role `json:"role,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -44,6 +46,15 @@ func (e TeamEdges) UserOrErr() ([]*User, error) {
 		return e.User, nil
 	}
 	return nil, &NotLoadedError{edge: "user"}
+}
+
+// RoleOrErr returns the Role value or an error if the edge
+// was not loaded in eager-loading.
+func (e TeamEdges) RoleOrErr() ([]*Role, error) {
+	if e.loadedTypes[1] {
+		return e.Role, nil
+	}
+	return nil, &NotLoadedError{edge: "role"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -110,6 +121,11 @@ func (_m *Team) Value(name string) (ent.Value, error) {
 // QueryUser queries the "user" edge of the Team entity.
 func (_m *Team) QueryUser() *UserQuery {
 	return NewTeamClient(_m.config).QueryUser(_m)
+}
+
+// QueryRole queries the "role" edge of the Team entity.
+func (_m *Team) QueryRole() *RoleQuery {
+	return NewTeamClient(_m.config).QueryRole(_m)
 }
 
 // Update returns a builder for updating this Team.

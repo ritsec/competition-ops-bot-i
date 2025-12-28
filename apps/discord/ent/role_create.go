@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
+	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
 // RoleCreate is the builder for creating a Role entity.
@@ -29,6 +30,21 @@ func (_c *RoleCreate) SetName(v string) *RoleCreate {
 func (_c *RoleCreate) SetID(v string) *RoleCreate {
 	_c.mutation.SetID(v)
 	return _c
+}
+
+// AddTeamIDs adds the "team" edge to the Team entity by IDs.
+func (_c *RoleCreate) AddTeamIDs(ids ...int) *RoleCreate {
+	_c.mutation.AddTeamIDs(ids...)
+	return _c
+}
+
+// AddTeam adds the "team" edges to the Team entity.
+func (_c *RoleCreate) AddTeam(v ...*Team) *RoleCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddTeamIDs(ids...)
 }
 
 // Mutation returns the RoleMutation object of the builder.
@@ -106,6 +122,22 @@ func (_c *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(role.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   role.TeamTable,
+			Columns: role.TeamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

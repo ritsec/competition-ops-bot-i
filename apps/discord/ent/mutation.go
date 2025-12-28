@@ -38,6 +38,9 @@ type RoleMutation struct {
 	id            *string
 	name          *string
 	clearedFields map[string]struct{}
+	team          map[int]struct{}
+	removedteam   map[int]struct{}
+	clearedteam   bool
 	done          bool
 	oldValue      func(context.Context) (*Role, error)
 	predicates    []predicate.Role
@@ -183,6 +186,60 @@ func (m *RoleMutation) ResetName() {
 	m.name = nil
 }
 
+// AddTeamIDs adds the "team" edge to the Team entity by ids.
+func (m *RoleMutation) AddTeamIDs(ids ...int) {
+	if m.team == nil {
+		m.team = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.team[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTeam clears the "team" edge to the Team entity.
+func (m *RoleMutation) ClearTeam() {
+	m.clearedteam = true
+}
+
+// TeamCleared reports if the "team" edge to the Team entity was cleared.
+func (m *RoleMutation) TeamCleared() bool {
+	return m.clearedteam
+}
+
+// RemoveTeamIDs removes the "team" edge to the Team entity by IDs.
+func (m *RoleMutation) RemoveTeamIDs(ids ...int) {
+	if m.removedteam == nil {
+		m.removedteam = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.team, ids[i])
+		m.removedteam[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTeam returns the removed IDs of the "team" edge to the Team entity.
+func (m *RoleMutation) RemovedTeamIDs() (ids []int) {
+	for id := range m.removedteam {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TeamIDs returns the "team" edge IDs in the mutation.
+func (m *RoleMutation) TeamIDs() (ids []int) {
+	for id := range m.team {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTeam resets all changes to the "team" edge.
+func (m *RoleMutation) ResetTeam() {
+	m.team = nil
+	m.clearedteam = false
+	m.removedteam = nil
+}
+
 // Where appends a list predicates to the RoleMutation builder.
 func (m *RoleMutation) Where(ps ...predicate.Role) {
 	m.predicates = append(m.predicates, ps...)
@@ -316,49 +373,85 @@ func (m *RoleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.team != nil {
+		edges = append(edges, role.EdgeTeam)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *RoleMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case role.EdgeTeam:
+		ids := make([]ent.Value, 0, len(m.team))
+		for id := range m.team {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedteam != nil {
+		edges = append(edges, role.EdgeTeam)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *RoleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case role.EdgeTeam:
+		ids := make([]ent.Value, 0, len(m.removedteam))
+		for id := range m.removedteam {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedteam {
+		edges = append(edges, role.EdgeTeam)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *RoleMutation) EdgeCleared(name string) bool {
+	switch name {
+	case role.EdgeTeam:
+		return m.clearedteam
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *RoleMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Role unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *RoleMutation) ResetEdge(name string) error {
+	switch name {
+	case role.EdgeTeam:
+		m.ResetTeam()
+		return nil
+	}
 	return fmt.Errorf("unknown Role edge %s", name)
 }
 
@@ -376,6 +469,9 @@ type TeamMutation struct {
 	user          map[int]struct{}
 	removeduser   map[int]struct{}
 	cleareduser   bool
+	role          map[string]struct{}
+	removedrole   map[string]struct{}
+	clearedrole   bool
 	done          bool
 	oldValue      func(context.Context) (*Team, error)
 	predicates    []predicate.Team
@@ -675,6 +771,60 @@ func (m *TeamMutation) ResetUser() {
 	m.removeduser = nil
 }
 
+// AddRoleIDs adds the "role" edge to the Role entity by ids.
+func (m *TeamMutation) AddRoleIDs(ids ...string) {
+	if m.role == nil {
+		m.role = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.role[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRole clears the "role" edge to the Role entity.
+func (m *TeamMutation) ClearRole() {
+	m.clearedrole = true
+}
+
+// RoleCleared reports if the "role" edge to the Role entity was cleared.
+func (m *TeamMutation) RoleCleared() bool {
+	return m.clearedrole
+}
+
+// RemoveRoleIDs removes the "role" edge to the Role entity by IDs.
+func (m *TeamMutation) RemoveRoleIDs(ids ...string) {
+	if m.removedrole == nil {
+		m.removedrole = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.role, ids[i])
+		m.removedrole[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRole returns the removed IDs of the "role" edge to the Role entity.
+func (m *TeamMutation) RemovedRoleIDs() (ids []string) {
+	for id := range m.removedrole {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RoleIDs returns the "role" edge IDs in the mutation.
+func (m *TeamMutation) RoleIDs() (ids []string) {
+	for id := range m.role {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRole resets all changes to the "role" edge.
+func (m *TeamMutation) ResetRole() {
+	m.role = nil
+	m.clearedrole = false
+	m.removedrole = nil
+}
+
 // Where appends a list predicates to the TeamMutation builder.
 func (m *TeamMutation) Where(ps ...predicate.Team) {
 	m.predicates = append(m.predicates, ps...)
@@ -866,9 +1016,12 @@ func (m *TeamMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TeamMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.user != nil {
 		edges = append(edges, team.EdgeUser)
+	}
+	if m.role != nil {
+		edges = append(edges, team.EdgeRole)
 	}
 	return edges
 }
@@ -883,15 +1036,24 @@ func (m *TeamMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case team.EdgeRole:
+		ids := make([]ent.Value, 0, len(m.role))
+		for id := range m.role {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TeamMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removeduser != nil {
 		edges = append(edges, team.EdgeUser)
+	}
+	if m.removedrole != nil {
+		edges = append(edges, team.EdgeRole)
 	}
 	return edges
 }
@@ -906,15 +1068,24 @@ func (m *TeamMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case team.EdgeRole:
+		ids := make([]ent.Value, 0, len(m.removedrole))
+		for id := range m.removedrole {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TeamMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleareduser {
 		edges = append(edges, team.EdgeUser)
+	}
+	if m.clearedrole {
+		edges = append(edges, team.EdgeRole)
 	}
 	return edges
 }
@@ -925,6 +1096,8 @@ func (m *TeamMutation) EdgeCleared(name string) bool {
 	switch name {
 	case team.EdgeUser:
 		return m.cleareduser
+	case team.EdgeRole:
+		return m.clearedrole
 	}
 	return false
 }
@@ -943,6 +1116,9 @@ func (m *TeamMutation) ResetEdge(name string) error {
 	switch name {
 	case team.EdgeUser:
 		m.ResetUser()
+		return nil
+	case team.EdgeRole:
+		m.ResetRole()
 		return nil
 	}
 	return fmt.Errorf("unknown Team edge %s", name)

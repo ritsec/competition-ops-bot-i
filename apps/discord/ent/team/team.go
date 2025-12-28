@@ -22,6 +22,8 @@ const (
 	FieldNumber = "number"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
+	// EdgeRole holds the string denoting the role edge name in mutations.
+	EdgeRole = "role"
 	// Table holds the table name of the team in the database.
 	Table = "teams"
 	// UserTable is the table that holds the user relation/edge.
@@ -31,6 +33,11 @@ const (
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
 	UserColumn = "team_user"
+	// RoleTable is the table that holds the role relation/edge. The primary key declared below.
+	RoleTable = "team_role"
+	// RoleInverseTable is the table name for the Role entity.
+	// It exists in this package in order to avoid circular dependency with the "role" package.
+	RoleInverseTable = "roles"
 )
 
 // Columns holds all SQL columns for team fields.
@@ -40,6 +47,12 @@ var Columns = []string{
 	FieldType,
 	FieldNumber,
 }
+
+var (
+	// RolePrimaryKey and RoleColumn2 are the table columns denoting the
+	// primary key for the role relation (M2M).
+	RolePrimaryKey = []string{"team_id", "role_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -121,10 +134,31 @@ func ByUser(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newUserStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByRoleCount orders the results by role count.
+func ByRoleCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRoleStep(), opts...)
+	}
+}
+
+// ByRole orders the results by role terms.
+func ByRole(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRoleStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(UserInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, UserTable, UserColumn),
+	)
+}
+func newRoleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RoleInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, RoleTable, RolePrimaryKey...),
 	)
 }

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
+	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
@@ -25,6 +26,7 @@ type TeamQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Team
 	withUser   *UserQuery
+	withRole   *RoleQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -76,6 +78,28 @@ func (_q *TeamQuery) QueryUser() *UserQuery {
 			sqlgraph.From(team.Table, team.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, team.UserTable, team.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRole chains the current query on the "role" edge.
+func (_q *TeamQuery) QueryRole() *RoleQuery {
+	query := (&RoleClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, selector),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, team.RoleTable, team.RolePrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -276,6 +300,7 @@ func (_q *TeamQuery) Clone() *TeamQuery {
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Team{}, _q.predicates...),
 		withUser:   _q.withUser.Clone(),
+		withRole:   _q.withRole.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -290,6 +315,17 @@ func (_q *TeamQuery) WithUser(opts ...func(*UserQuery)) *TeamQuery {
 		opt(query)
 	}
 	_q.withUser = query
+	return _q
+}
+
+// WithRole tells the query-builder to eager-load the nodes that are connected to
+// the "role" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *TeamQuery) WithRole(opts ...func(*RoleQuery)) *TeamQuery {
+	query := (&RoleClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withRole = query
 	return _q
 }
 
@@ -371,8 +407,9 @@ func (_q *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 	var (
 		nodes       = []*Team{}
 		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			_q.withUser != nil,
+			_q.withRole != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -397,6 +434,13 @@ func (_q *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 		if err := _q.loadUser(ctx, query, nodes,
 			func(n *Team) { n.Edges.User = []*User{} },
 			func(n *Team, e *User) { n.Edges.User = append(n.Edges.User, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withRole; query != nil {
+		if err := _q.loadRole(ctx, query, nodes,
+			func(n *Team) { n.Edges.Role = []*Role{} },
+			func(n *Team, e *Role) { n.Edges.Role = append(n.Edges.Role, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -431,6 +475,67 @@ func (_q *TeamQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Te
 			return fmt.Errorf(`unexpected referenced foreign-key "team_user" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (_q *TeamQuery) loadRole(ctx context.Context, query *RoleQuery, nodes []*Team, init func(*Team), assign func(*Team, *Role)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*Team)
+	nids := make(map[string]map[*Team]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(team.RoleTable)
+		s.Join(joinT).On(s.C(role.FieldID), joinT.C(team.RolePrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(team.RolePrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(team.RolePrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := values[1].(*sql.NullString).String
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Team]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Role](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "role" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }

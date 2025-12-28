@@ -4,6 +4,7 @@ package role
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 )
 
@@ -130,6 +131,29 @@ func NameEqualFold(v string) predicate.Role {
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.Role {
 	return predicate.Role(sql.FieldContainsFold(FieldName, v))
+}
+
+// HasTeam applies the HasEdge predicate on the "team" edge.
+func HasTeam() predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, TeamTable, TeamPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTeamWith applies the HasEdge predicate on the "team" edge with a given conditions (other predicates).
+func HasTeamWith(preds ...predicate.Team) predicate.Role {
+	return predicate.Role(func(s *sql.Selector) {
+		step := newTeamStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

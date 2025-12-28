@@ -12,6 +12,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/gocarina/gocsv"
+	"github.com/ritsec/competition-ops-bot-i/ent"
+	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
@@ -94,6 +96,9 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 
 // Query DB for Blue teamers
 func (b *Bot) handleBlue(entries []*Entry) error {
+	// Default role
+	var defaultRole = "Blue Team"
+
 	for _, entry := range entries {
 		num, err := strconv.Atoi(entry.TeamNum)
 		if err != nil {
@@ -116,7 +121,17 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 			if err != nil {
 				return err
 			}
+
 		}
+		teamRole := fmt.Sprintf("Blue Team %d", num)
+		roles := []string{
+			defaultRole,
+			teamRole,
+		}
+		if err := b.addRoles(t, roles...); err != nil {
+			log.Fatal(err)
+		}
+
 		// Handle team members
 		for _, username := range []string{
 			entry.Teammate1,
@@ -143,6 +158,9 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 
 // Query DB for Red teamers
 func (b *Bot) handleRed(entries []*Entry) error {
+	// Default roles
+	var defaultRole = "Red Team"
+
 	// Check if Red team exists
 	t, err := b.Client.Team.
 		Query().
@@ -156,6 +174,14 @@ func (b *Bot) handleRed(entries []*Entry) error {
 			SetType("red").
 			Save(b.ClientCtx)
 	}
+
+	roles := []string{
+		defaultRole,
+	}
+	if err := b.addRoles(t, roles...); err != nil {
+		log.Fatal(err)
+	}
+
 	var leads []string
 	for _, entry := range entries {
 		// Create user from Members column and add them to Red team
@@ -225,4 +251,20 @@ func fileHandler(URL string) ([]*Entry, error) {
 	}
 
 	return entries, nil
+}
+
+// addRoles adds an array of roles to a team via edges
+func (b *Bot) addRoles(team *ent.Team, roles ...string) error {
+	for _, roleStr := range roles {
+		r, err := b.Client.Role.
+			Query().
+			Where(role.Name(roleStr)).
+			Only(b.ClientCtx)
+		if err != nil {
+			return err
+		}
+
+		team.Update().AddRole(r).Save(b.ClientCtx)
+	}
+	return nil
 }

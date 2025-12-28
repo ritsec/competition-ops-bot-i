@@ -18,8 +18,29 @@ type Role struct {
 	// Role ID
 	ID string `json:"id,omitempty"`
 	// Role name
-	Name         string `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the RoleQuery when eager-loading is set.
+	Edges        RoleEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// RoleEdges holds the relations/edges for other nodes in the graph.
+type RoleEdges struct {
+	// Team holds the value of the team edge.
+	Team []*Team `json:"team,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TeamOrErr returns the Team value or an error if the edge
+// was not loaded in eager-loading.
+func (e RoleEdges) TeamOrErr() ([]*Team, error) {
+	if e.loadedTypes[0] {
+		return e.Team, nil
+	}
+	return nil, &NotLoadedError{edge: "team"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -67,6 +88,11 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Role) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryTeam queries the "team" edge of the Role entity.
+func (_m *Role) QueryTeam() *TeamQuery {
+	return NewRoleClient(_m.config).QueryTeam(_m)
 }
 
 // Update returns a builder for updating this Role.
