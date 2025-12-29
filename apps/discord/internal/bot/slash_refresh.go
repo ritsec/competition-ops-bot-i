@@ -7,8 +7,9 @@ import (
 
 func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
-			Name:        "refresh",
-			Description: "Refresh COBI data",
+			Name:                     "refresh",
+			Description:              "Refresh COBI data",
+			DefaultMemberPermissions: &Admin,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,

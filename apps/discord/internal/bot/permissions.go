@@ -3,5 +3,7 @@ package bot
 import "github.com/bwmarrin/discordgo"
 
 var (
-	Black int64 = discordgo.PermissionManageChannels
+	Admin int64 = discordgo.PermissionManageChannels
+
+	Black int64 = discordgo.PermissionUseApplicationCommands
 )

@@ -39,8 +39,9 @@ var defaultRole = map[string]string{
 
 func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
-			Name:        "team",
-			Description: "Submit a CSV of team members",
+			Name:                     "team",
+			Description:              "Submit a CSV of team members",
+			DefaultMemberPermissions: &Admin,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
