@@ -84,18 +84,22 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 			log.Printf("received %s\n", fileURL)
 
 			// Populate array of entries from CSV
+			initialMessage(s, i, "Downloading and parsing file...")
 			entries, err := fileHandler(fileURL)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			// Handle according to command option
+			updateMessage(s, i, "Updating database...")
 			switch team {
 			case "Blue":
 				b.handleBlue(entries)
 			case "Red":
 				b.handleRed(entries)
 			}
+
+			updateMessage(s, i, "Successfully added team data!")
 		}
 }
 

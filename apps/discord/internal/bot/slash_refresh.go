@@ -27,6 +27,7 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			choice := i.ApplicationCommandData().Options[0].StringValue()
 
+			initialMessage(s, i, "Refreshing server role data...")
 			if choice == "Roles" {
 				roles, err := s.GuildRoles(guildID)
 				if err != nil {
@@ -47,9 +48,9 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 						if err != nil {
 							panic(err)
 						}
-					}
+					} // TODO: Update role
 				}
 			}
-
+			updateMessage(s, i, "Successfully refreshed server role data!")
 		}
 }
