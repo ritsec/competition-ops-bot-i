@@ -30,6 +30,19 @@ func (Team) Fields() []ent.Field {
 		field.Int("number").
 			Comment("Team number").
 			Optional(),
+		field.Enum("subteam").
+			Values(
+				"infra",
+				"linux",
+				"windows",
+				"scoring",
+				"logging",
+				"store",
+				"ctf",
+				"koth",
+			).
+			Comment("Subteam of team type").
+			Optional(),
 	}
 }
 

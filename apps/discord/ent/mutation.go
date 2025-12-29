@@ -465,6 +465,7 @@ type TeamMutation struct {
 	_type         *team.Type
 	number        *int
 	addnumber     *int
+	subteam       *team.Subteam
 	clearedFields map[string]struct{}
 	user          map[int]struct{}
 	removeduser   map[int]struct{}
@@ -717,6 +718,55 @@ func (m *TeamMutation) ResetNumber() {
 	delete(m.clearedFields, team.FieldNumber)
 }
 
+// SetSubteam sets the "subteam" field.
+func (m *TeamMutation) SetSubteam(t team.Subteam) {
+	m.subteam = &t
+}
+
+// Subteam returns the value of the "subteam" field in the mutation.
+func (m *TeamMutation) Subteam() (r team.Subteam, exists bool) {
+	v := m.subteam
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubteam returns the old "subteam" field's value of the Team entity.
+// If the Team object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TeamMutation) OldSubteam(ctx context.Context) (v team.Subteam, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubteam is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubteam requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubteam: %w", err)
+	}
+	return oldValue.Subteam, nil
+}
+
+// ClearSubteam clears the value of the "subteam" field.
+func (m *TeamMutation) ClearSubteam() {
+	m.subteam = nil
+	m.clearedFields[team.FieldSubteam] = struct{}{}
+}
+
+// SubteamCleared returns if the "subteam" field was cleared in this mutation.
+func (m *TeamMutation) SubteamCleared() bool {
+	_, ok := m.clearedFields[team.FieldSubteam]
+	return ok
+}
+
+// ResetSubteam resets all changes to the "subteam" field.
+func (m *TeamMutation) ResetSubteam() {
+	m.subteam = nil
+	delete(m.clearedFields, team.FieldSubteam)
+}
+
 // AddUserIDs adds the "user" edge to the User entity by ids.
 func (m *TeamMutation) AddUserIDs(ids ...int) {
 	if m.user == nil {
@@ -859,7 +909,7 @@ func (m *TeamMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TeamMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.lead != nil {
 		fields = append(fields, team.FieldLead)
 	}
@@ -868,6 +918,9 @@ func (m *TeamMutation) Fields() []string {
 	}
 	if m.number != nil {
 		fields = append(fields, team.FieldNumber)
+	}
+	if m.subteam != nil {
+		fields = append(fields, team.FieldSubteam)
 	}
 	return fields
 }
@@ -883,6 +936,8 @@ func (m *TeamMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case team.FieldNumber:
 		return m.Number()
+	case team.FieldSubteam:
+		return m.Subteam()
 	}
 	return nil, false
 }
@@ -898,6 +953,8 @@ func (m *TeamMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldType(ctx)
 	case team.FieldNumber:
 		return m.OldNumber(ctx)
+	case team.FieldSubteam:
+		return m.OldSubteam(ctx)
 	}
 	return nil, fmt.Errorf("unknown Team field %s", name)
 }
@@ -927,6 +984,13 @@ func (m *TeamMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetNumber(v)
+		return nil
+	case team.FieldSubteam:
+		v, ok := value.(team.Subteam)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubteam(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Team field %s", name)
@@ -976,6 +1040,9 @@ func (m *TeamMutation) ClearedFields() []string {
 	if m.FieldCleared(team.FieldNumber) {
 		fields = append(fields, team.FieldNumber)
 	}
+	if m.FieldCleared(team.FieldSubteam) {
+		fields = append(fields, team.FieldSubteam)
+	}
 	return fields
 }
 
@@ -993,6 +1060,9 @@ func (m *TeamMutation) ClearField(name string) error {
 	case team.FieldNumber:
 		m.ClearNumber()
 		return nil
+	case team.FieldSubteam:
+		m.ClearSubteam()
+		return nil
 	}
 	return fmt.Errorf("unknown Team nullable field %s", name)
 }
@@ -1009,6 +1079,9 @@ func (m *TeamMutation) ResetField(name string) error {
 		return nil
 	case team.FieldNumber:
 		m.ResetNumber()
+		return nil
+	case team.FieldSubteam:
+		m.ResetSubteam()
 		return nil
 	}
 	return fmt.Errorf("unknown Team field %s", name)

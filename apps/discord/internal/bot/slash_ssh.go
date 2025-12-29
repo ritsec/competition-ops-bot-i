@@ -10,7 +10,7 @@ func SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discord
 	return &discordgo.ApplicationCommand{
 			Name:                     "ssh",
 			Description:              "Register an SSH key for Black Team",
-			DefaultMemberPermissions: &Black,
+			DefaultMemberPermissions: &BlackTeam,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,

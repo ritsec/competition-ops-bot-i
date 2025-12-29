@@ -84,6 +84,26 @@ func (_u *TeamUpdate) ClearNumber() *TeamUpdate {
 	return _u
 }
 
+// SetSubteam sets the "subteam" field.
+func (_u *TeamUpdate) SetSubteam(v team.Subteam) *TeamUpdate {
+	_u.mutation.SetSubteam(v)
+	return _u
+}
+
+// SetNillableSubteam sets the "subteam" field if the given value is not nil.
+func (_u *TeamUpdate) SetNillableSubteam(v *team.Subteam) *TeamUpdate {
+	if v != nil {
+		_u.SetSubteam(*v)
+	}
+	return _u
+}
+
+// ClearSubteam clears the value of the "subteam" field.
+func (_u *TeamUpdate) ClearSubteam() *TeamUpdate {
+	_u.mutation.ClearSubteam()
+	return _u
+}
+
 // AddUserIDs adds the "user" edge to the User entity by IDs.
 func (_u *TeamUpdate) AddUserIDs(ids ...int) *TeamUpdate {
 	_u.mutation.AddUserIDs(ids...)
@@ -195,6 +215,11 @@ func (_u *TeamUpdate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Team.type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Subteam(); ok {
+		if err := team.SubteamValidator(v); err != nil {
+			return &ValidationError{Name: "subteam", err: fmt.Errorf(`ent: validator failed for field "Team.subteam": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -224,6 +249,12 @@ func (_u *TeamUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.NumberCleared() {
 		_spec.ClearField(team.FieldNumber, field.TypeInt)
+	}
+	if value, ok := _u.mutation.Subteam(); ok {
+		_spec.SetField(team.FieldSubteam, field.TypeEnum, value)
+	}
+	if _u.mutation.SubteamCleared() {
+		_spec.ClearField(team.FieldSubteam, field.TypeEnum)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -390,6 +421,26 @@ func (_u *TeamUpdateOne) ClearNumber() *TeamUpdateOne {
 	return _u
 }
 
+// SetSubteam sets the "subteam" field.
+func (_u *TeamUpdateOne) SetSubteam(v team.Subteam) *TeamUpdateOne {
+	_u.mutation.SetSubteam(v)
+	return _u
+}
+
+// SetNillableSubteam sets the "subteam" field if the given value is not nil.
+func (_u *TeamUpdateOne) SetNillableSubteam(v *team.Subteam) *TeamUpdateOne {
+	if v != nil {
+		_u.SetSubteam(*v)
+	}
+	return _u
+}
+
+// ClearSubteam clears the value of the "subteam" field.
+func (_u *TeamUpdateOne) ClearSubteam() *TeamUpdateOne {
+	_u.mutation.ClearSubteam()
+	return _u
+}
+
 // AddUserIDs adds the "user" edge to the User entity by IDs.
 func (_u *TeamUpdateOne) AddUserIDs(ids ...int) *TeamUpdateOne {
 	_u.mutation.AddUserIDs(ids...)
@@ -514,6 +565,11 @@ func (_u *TeamUpdateOne) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Team.type": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Subteam(); ok {
+		if err := team.SubteamValidator(v); err != nil {
+			return &ValidationError{Name: "subteam", err: fmt.Errorf(`ent: validator failed for field "Team.subteam": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -560,6 +616,12 @@ func (_u *TeamUpdateOne) sqlSave(ctx context.Context) (_node *Team, err error) {
 	}
 	if _u.mutation.NumberCleared() {
 		_spec.ClearField(team.FieldNumber, field.TypeInt)
+	}
+	if value, ok := _u.mutation.Subteam(); ok {
+		_spec.SetField(team.FieldSubteam, field.TypeEnum, value)
+	}
+	if _u.mutation.SubteamCleared() {
+		_spec.ClearField(team.FieldSubteam, field.TypeEnum)
 	}
 	if _u.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{

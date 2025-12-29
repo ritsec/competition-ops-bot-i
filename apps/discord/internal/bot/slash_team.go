@@ -1,20 +1,16 @@
 package bot
 
 import (
-	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/google/uuid"
-	"github.com/ritsec/competition-ops-bot-i/ent"
-	"github.com/ritsec/competition-ops-bot-i/ent/role"
-	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
-type Entry struct {
+type Blue struct {
 	// Blue
 	School    string `csv:"School"`
 	TeamNum   string `csv:"Team Number"`
@@ -23,15 +19,24 @@ type Entry struct {
 	Teammate3 string `csv:"Teammate 3"`
 	Teammate4 string `csv:"Teammate 4"`
 	Teammate5 string `csv:"Teammate 5"`
+}
 
+type Red struct {
 	// Red
 	Members string `csv:"Members"`
 	Leads   string `csv:"Leads"`
 }
 
-var defaultRole = map[string]string{
-	"blue": "Blue Team",
-	"red":  "Red Team",
+type Black struct {
+	// Black
+	Infra   string `csv:"Infra"`
+	Linux   string `csv:"Linux"`
+	Windows string `csv:"Windows"`
+	Scoring string `csv:"Scoring"`
+	Logging string `csv:"Logging"`
+	Store   string `csv:"Store"`
+	CTF     string `csv:"CTF"`
+	KotH    string `csv:"KotH"`
 }
 
 func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -83,18 +88,33 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 
 			// Populate array of entries from CSV
 			initialMessage(s, i, "Downloading and parsing file...")
-			entries, err := utils.HandleCSV[Entry](fileURL)
-			if err != nil {
-				log.Fatal(err)
-			}
 
-			// Handle according to command option
-			updateMessage(s, i, "Updating database...")
 			switch team {
-			case "Blue": // TODO: handle errors
+			case "Blue":
+				entries, err := utils.HandleCSV[Blue](fileURL)
+				if err != nil {
+					log.Fatal(err)
+				}
+				updateMessage(s, i, "Updating database...")
 				b.handleBlue(entries)
 			case "Red":
+				entries, err := utils.HandleCSV[Red](fileURL)
+				if err != nil {
+					log.Fatal(err)
+				}
+				updateMessage(s, i, "Updating database...")
 				b.handleRed(entries)
+			case "Black":
+				entries, err := utils.HandleCSV[Black](fileURL)
+				if err != nil {
+					log.Fatal(err)
+				}
+				updateMessage(s, i, "Updating database...")
+
+				err = b.handleBlack(entries)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 
 			updateMessage(s, i, "Successfully added team data!")
@@ -102,39 +122,19 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 }
 
 // Query DB for Blue teamers
-func (b *Bot) handleBlue(entries []*Entry) error {
+func (b *Bot) handleBlue(entries []*Blue) error {
 
 	for _, entry := range entries {
+		// Team number
 		num, err := strconv.Atoi(entry.TeamNum)
 		if err != nil {
 			return err
 		}
 
-		// Check if team already exists
-		t, err := b.Client.Team.
-			Query().
-			Where(team.Number(num)).
-			Only(b.ClientCtx)
-		if err != nil { // Create team if it doesn't exist
-			log.Printf("creating team %d", num)
-
-			t, err = b.Client.Team.
-				Create().
-				SetType("blue").
-				SetNumber(num).
-				Save(b.ClientCtx)
-			if err != nil {
-				return err
-			}
-
-		}
-		teamRole := fmt.Sprintf("Blue Team %d", num)
-		roles := []string{
-			defaultRole["blue"],
-			teamRole,
-		}
-		if err := b.addRoles(t, roles...); err != nil {
-			log.Fatal(err)
+		// Check/create Blue team
+		t, err := b.getBlue(num)
+		if err != nil {
+			return err
 		}
 
 		// Handle team members
@@ -161,27 +161,12 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 }
 
 // Query DB for Red teamers
-func (b *Bot) handleRed(entries []*Entry) error {
+func (b *Bot) handleRed(entries []*Red) error {
 
 	// Check if Red team exists
-	t, err := b.Client.Team.
-		Query().
-		Where(team.TypeEQ("red")).
-		Only(b.ClientCtx)
-	if err != nil { // Create Red team if it doesn't exist
-		log.Println("creating Red team")
-
-		t, err = b.Client.Team.
-			Create().
-			SetType("red").
-			Save(b.ClientCtx)
-	}
-
-	roles := []string{
-		defaultRole["red"],
-	}
-	if err := b.addRoles(t, roles...); err != nil {
-		log.Fatal(err)
+	t, err := b.getRed()
+	if err != nil {
+		return err
 	}
 
 	var leads []string
@@ -206,30 +191,44 @@ func (b *Bot) handleRed(entries []*Entry) error {
 	return nil
 }
 
-// addRoles adds an array of roles to a team via edges
-func (b *Bot) addRoles(team *ent.Team, roles ...string) error {
-	for _, roleStr := range roles {
-		r, err := b.Client.Role.
-			Query().
-			Where(role.Name(roleStr)).
-			Only(b.ClientCtx)
-		if err != nil {
-			return err
-		}
+// Update DB for Black teamers
+func (b *Bot) handleBlack(entries []*Black) error {
 
-		team.Update().AddRole(r).Save(b.ClientCtx)
+	// Get Black teams
+	teams, err := b.getBlack()
+	if err != nil {
+		return err
 	}
+
+	// var leads []string
+	for _, entry := range entries {
+		// Dereference *Entry
+		entryVal := reflect.ValueOf(entry).Elem()
+		entryType := entryVal.Type()
+
+		// Iterate over each entry field
+		for i := 0; i < entryVal.NumField(); i++ {
+			// Get username from the value of the individual entry
+			username := entryVal.Field(i).String()
+			if username == "" {
+				continue
+			}
+
+			u, err := b.createUser(username)
+			if err != nil {
+				return err
+			}
+
+			// Get subteam and the corresponding pointer to team entity
+			subteam := entryType.Field(i).Name
+			t := teams[subteam]
+
+			// Add user to team
+			t.Update().
+				AddUser(u).
+				Save(b.ClientCtx)
+		}
+	}
+
 	return nil
-}
-
-// createUser is a helper function to create a user with the given username
-// and a default UUID.
-func (b *Bot) createUser(username string) (*ent.User, error) {
-	u, err := b.Client.User.
-		Create().
-		SetUID(uuid.New().String()). // Set temporary uuid to be changed on join event
-		SetUsername(username).
-		Save(b.ClientCtx)
-
-	return u, err
 }

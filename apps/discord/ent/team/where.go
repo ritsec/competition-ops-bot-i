@@ -198,6 +198,36 @@ func NumberNotNil() predicate.Team {
 	return predicate.Team(sql.FieldNotNull(FieldNumber))
 }
 
+// SubteamEQ applies the EQ predicate on the "subteam" field.
+func SubteamEQ(v Subteam) predicate.Team {
+	return predicate.Team(sql.FieldEQ(FieldSubteam, v))
+}
+
+// SubteamNEQ applies the NEQ predicate on the "subteam" field.
+func SubteamNEQ(v Subteam) predicate.Team {
+	return predicate.Team(sql.FieldNEQ(FieldSubteam, v))
+}
+
+// SubteamIn applies the In predicate on the "subteam" field.
+func SubteamIn(vs ...Subteam) predicate.Team {
+	return predicate.Team(sql.FieldIn(FieldSubteam, vs...))
+}
+
+// SubteamNotIn applies the NotIn predicate on the "subteam" field.
+func SubteamNotIn(vs ...Subteam) predicate.Team {
+	return predicate.Team(sql.FieldNotIn(FieldSubteam, vs...))
+}
+
+// SubteamIsNil applies the IsNil predicate on the "subteam" field.
+func SubteamIsNil() predicate.Team {
+	return predicate.Team(sql.FieldIsNull(FieldSubteam))
+}
+
+// SubteamNotNil applies the NotNil predicate on the "subteam" field.
+func SubteamNotNil() predicate.Team {
+	return predicate.Team(sql.FieldNotNull(FieldSubteam))
+}
+
 // HasUser applies the HasEdge predicate on the "user" edge.
 func HasUser() predicate.Team {
 	return predicate.Team(func(s *sql.Selector) {

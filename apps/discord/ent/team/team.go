@@ -20,6 +20,8 @@ const (
 	FieldType = "type"
 	// FieldNumber holds the string denoting the number field in the database.
 	FieldNumber = "number"
+	// FieldSubteam holds the string denoting the subteam field in the database.
+	FieldSubteam = "subteam"
 	// EdgeUser holds the string denoting the user edge name in mutations.
 	EdgeUser = "user"
 	// EdgeRole holds the string denoting the role edge name in mutations.
@@ -46,6 +48,7 @@ var Columns = []string{
 	FieldLead,
 	FieldType,
 	FieldNumber,
+	FieldSubteam,
 }
 
 var (
@@ -98,6 +101,35 @@ func TypeValidator(_type Type) error {
 	}
 }
 
+// Subteam defines the type for the "subteam" enum field.
+type Subteam string
+
+// Subteam values.
+const (
+	SubteamInfra   Subteam = "infra"
+	SubteamLinux   Subteam = "linux"
+	SubteamWindows Subteam = "windows"
+	SubteamScoring Subteam = "scoring"
+	SubteamLogging Subteam = "logging"
+	SubteamStore   Subteam = "store"
+	SubteamCtf     Subteam = "ctf"
+	SubteamKoth    Subteam = "koth"
+)
+
+func (s Subteam) String() string {
+	return string(s)
+}
+
+// SubteamValidator is a validator for the "subteam" field enum values. It is called by the builders before save.
+func SubteamValidator(s Subteam) error {
+	switch s {
+	case SubteamInfra, SubteamLinux, SubteamWindows, SubteamScoring, SubteamLogging, SubteamStore, SubteamCtf, SubteamKoth:
+		return nil
+	default:
+		return fmt.Errorf("team: invalid enum value for subteam field: %q", s)
+	}
+}
+
 // OrderOption defines the ordering options for the Team queries.
 type OrderOption func(*sql.Selector)
 
@@ -119,6 +151,11 @@ func ByType(opts ...sql.OrderTermOption) OrderOption {
 // ByNumber orders the results by the number field.
 func ByNumber(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNumber, opts...).ToFunc()
+}
+
+// BySubteam orders the results by the subteam field.
+func BySubteam(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubteam, opts...).ToFunc()
 }
 
 // ByUserCount orders the results by user count.
