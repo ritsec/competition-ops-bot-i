@@ -63,6 +63,20 @@ func (_c *TeamCreate) SetNillableNumber(v *int) *TeamCreate {
 	return _c
 }
 
+// SetSubteam sets the "subteam" field.
+func (_c *TeamCreate) SetSubteam(v team.Subteam) *TeamCreate {
+	_c.mutation.SetSubteam(v)
+	return _c
+}
+
+// SetNillableSubteam sets the "subteam" field if the given value is not nil.
+func (_c *TeamCreate) SetNillableSubteam(v *team.Subteam) *TeamCreate {
+	if v != nil {
+		_c.SetSubteam(*v)
+	}
+	return _c
+}
+
 // AddUserIDs adds the "user" edge to the User entity by IDs.
 func (_c *TeamCreate) AddUserIDs(ids ...int) *TeamCreate {
 	_c.mutation.AddUserIDs(ids...)
@@ -151,6 +165,11 @@ func (_c *TeamCreate) check() error {
 			return &ValidationError{Name: "type", err: fmt.Errorf(`ent: validator failed for field "Team.type": %w`, err)}
 		}
 	}
+	if v, ok := _c.mutation.Subteam(); ok {
+		if err := team.SubteamValidator(v); err != nil {
+			return &ValidationError{Name: "subteam", err: fmt.Errorf(`ent: validator failed for field "Team.subteam": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -188,6 +207,10 @@ func (_c *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Number(); ok {
 		_spec.SetField(team.FieldNumber, field.TypeInt, value)
 		_node.Number = value
+	}
+	if value, ok := _c.mutation.Subteam(); ok {
+		_spec.SetField(team.FieldSubteam, field.TypeEnum, value)
+		_node.Subteam = value
 	}
 	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

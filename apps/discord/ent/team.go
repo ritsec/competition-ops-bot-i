@@ -22,6 +22,8 @@ type Team struct {
 	Type team.Type `json:"type,omitempty"`
 	// Team number
 	Number int `json:"number,omitempty"`
+	// Subteam of team type
+	Subteam team.Subteam `json:"subteam,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TeamQuery when eager-loading is set.
 	Edges        TeamEdges `json:"edges"`
@@ -64,7 +66,7 @@ func (*Team) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case team.FieldID, team.FieldNumber:
 			values[i] = new(sql.NullInt64)
-		case team.FieldLead, team.FieldType:
+		case team.FieldLead, team.FieldType, team.FieldSubteam:
 			values[i] = new(sql.NullString)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -104,6 +106,12 @@ func (_m *Team) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field number", values[i])
 			} else if value.Valid {
 				_m.Number = int(value.Int64)
+			}
+		case team.FieldSubteam:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field subteam", values[i])
+			} else if value.Valid {
+				_m.Subteam = team.Subteam(value.String)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -159,6 +167,9 @@ func (_m *Team) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("number=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Number))
+	builder.WriteString(", ")
+	builder.WriteString("subteam=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Subteam))
 	builder.WriteByte(')')
 	return builder.String()
 }

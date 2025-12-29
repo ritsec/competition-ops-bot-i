@@ -5,6 +5,8 @@ import (
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 )
 
+var NUM_BLUE_TEAMS = 21
+
 func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
 			Name:                     "refresh",
@@ -20,7 +22,15 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 						{
 							Name:  "Roles",
 							Value: "Roles",
-						}, // TODO: Option to remove entry
+						},
+						{
+							Name:  "Teams",
+							Value: "Teams",
+						},
+						{
+							Name:  "All",
+							Value: "All",
+						},
 					},
 				},
 			},
@@ -29,7 +39,9 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 			choice := i.ApplicationCommandData().Options[0].StringValue()
 
 			initialMessage(s, i, "Refreshing server role data...")
-			if choice == "Roles" {
+
+			switch choice {
+			case "Roles":
 				roles, err := s.GuildRoles(guildID)
 				if err != nil {
 					panic(err)
@@ -51,7 +63,28 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 						}
 					} // TODO: Update role
 				}
+			case "Teams":
+
 			}
 			updateMessage(s, i, "Successfully refreshed server role data!")
 		}
+}
+
+func (b *Bot) createTeams() error {
+	// Blue Teams
+	for i := 1; i <= NUM_BLUE_TEAMS; i++ {
+		// Create/check for team
+		_, err := b.getBlue(i)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Red Team
+	_, err := b.getRed()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

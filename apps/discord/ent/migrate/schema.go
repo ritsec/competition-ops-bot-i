@@ -25,6 +25,7 @@ var (
 		{Name: "lead", Type: field.TypeString, Default: "none"},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"blue", "red", "black", "white", "purple"}, Default: "black"},
 		{Name: "number", Type: field.TypeInt, Nullable: true},
+		{Name: "subteam", Type: field.TypeEnum, Nullable: true, Enums: []string{"infra", "linux", "windows", "scoring", "logging", "store", "ctf", "koth"}},
 	}
 	// TeamsTable holds the schema information for the "teams" table.
 	TeamsTable = &schema.Table{

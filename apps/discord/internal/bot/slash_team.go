@@ -1,16 +1,11 @@
 package bot
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/google/uuid"
-	"github.com/ritsec/competition-ops-bot-i/ent"
-	"github.com/ritsec/competition-ops-bot-i/ent/role"
-	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
@@ -27,11 +22,16 @@ type Entry struct {
 	// Red
 	Members string `csv:"Members"`
 	Leads   string `csv:"Leads"`
-}
 
-var defaultRole = map[string]string{
-	"blue": "Blue Team",
-	"red":  "Red Team",
+	// Black
+	Infra   string `csv:"Infra"`
+	Linux   string `csv:"Linux"`
+	Windows string `csv:"Windows"`
+	Scoring string `csv:"Scoring"`
+	Logging string `csv:"Logging"`
+	Store   string `csv:"Store"`
+	CTF     string `csv:"CTF"`
+	KotH    string `csv:"KotH"`
 }
 
 func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -105,36 +105,16 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 func (b *Bot) handleBlue(entries []*Entry) error {
 
 	for _, entry := range entries {
+		// Team number
 		num, err := strconv.Atoi(entry.TeamNum)
 		if err != nil {
 			return err
 		}
 
-		// Check if team already exists
-		t, err := b.Client.Team.
-			Query().
-			Where(team.Number(num)).
-			Only(b.ClientCtx)
-		if err != nil { // Create team if it doesn't exist
-			log.Printf("creating team %d", num)
-
-			t, err = b.Client.Team.
-				Create().
-				SetType("blue").
-				SetNumber(num).
-				Save(b.ClientCtx)
-			if err != nil {
-				return err
-			}
-
-		}
-		teamRole := fmt.Sprintf("Blue Team %d", num)
-		roles := []string{
-			defaultRole["blue"],
-			teamRole,
-		}
-		if err := b.addRoles(t, roles...); err != nil {
-			log.Fatal(err)
+		// Check/create Blue team
+		t, err := b.getBlue(num)
+		if err != nil {
+			return err
 		}
 
 		// Handle team members
@@ -164,24 +144,9 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 func (b *Bot) handleRed(entries []*Entry) error {
 
 	// Check if Red team exists
-	t, err := b.Client.Team.
-		Query().
-		Where(team.TypeEQ("red")).
-		Only(b.ClientCtx)
-	if err != nil { // Create Red team if it doesn't exist
-		log.Println("creating Red team")
-
-		t, err = b.Client.Team.
-			Create().
-			SetType("red").
-			Save(b.ClientCtx)
-	}
-
-	roles := []string{
-		defaultRole["red"],
-	}
-	if err := b.addRoles(t, roles...); err != nil {
-		log.Fatal(err)
+	t, err := b.getRed()
+	if err != nil {
+		return err
 	}
 
 	var leads []string
@@ -206,30 +171,26 @@ func (b *Bot) handleRed(entries []*Entry) error {
 	return nil
 }
 
-// addRoles adds an array of roles to a team via edges
-func (b *Bot) addRoles(team *ent.Team, roles ...string) error {
-	for _, roleStr := range roles {
-		r, err := b.Client.Role.
-			Query().
-			Where(role.Name(roleStr)).
-			Only(b.ClientCtx)
-		if err != nil {
-			return err
-		}
+// Update DB for Black teamers
+func (b *Bot) handleBlack(entries []*Entry) error {
 
-		team.Update().AddRole(r).Save(b.ClientCtx)
+	// Get Black teams
+	teams, err := b.getBlack()
+	if err != nil {
+		return err
 	}
-	return nil
-}
 
-// createUser is a helper function to create a user with the given username
-// and a default UUID.
-func (b *Bot) createUser(username string) (*ent.User, error) {
-	u, err := b.Client.User.
-		Create().
-		SetUID(uuid.New().String()). // Set temporary uuid to be changed on join event
-		SetUsername(username).
-		Save(b.ClientCtx)
+	// var leads []string
+	var username string
+	for _, entry := range entries {
+		if entry.Infra != "" {
+			username = entry.Infra
 
-	return u, err
+			u, err := b.createUser(username)
+			if err != nil {
+				return err
+			}
+			teams["Infra"].Update().AddUser(u).Save(b.ClientCtx)
+		}
+	}
 }
