@@ -1,11 +1,13 @@
 package bot
 
 import (
+	"log"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 )
 
-var NUM_BLUE_TEAMS = 21
+var NUM_BLUE_TEAMS = 15
 
 func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
@@ -64,7 +66,9 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 					} // TODO: Update role
 				}
 			case "Teams":
-
+				if err := b.createTeams(); err != nil {
+					log.Fatal(err)
+				}
 			}
 			updateMessage(s, i, "Successfully refreshed server role data!")
 		}
@@ -82,6 +86,12 @@ func (b *Bot) createTeams() error {
 
 	// Red Team
 	_, err := b.getRed()
+	if err != nil {
+		return err
+	}
+
+	// Black Team
+	_, err = b.getBlack()
 	if err != nil {
 		return err
 	}

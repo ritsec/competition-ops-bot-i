@@ -122,6 +122,8 @@ func (b *Bot) getBlack() (map[string]*ent.Team, error) {
 			Where(team.And(team.TypeEQ("black"), team.SubteamEQ(subteam))).
 			Only(b.ClientCtx)
 		if err != nil { // Create if it doesn't exist
+			log.Printf("creating %s team", name)
+
 			t, err = b.Client.Team.
 				Create().
 				SetType("black").
