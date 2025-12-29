@@ -137,9 +137,10 @@ func (b *Bot) getBlack() (map[string]*ent.Team, error) {
 				return nil, err
 			}
 
-			teams[name] = t
 		}
+		teams[name] = t
 	}
 
+	log.Println(teams)
 	return teams, nil
 }

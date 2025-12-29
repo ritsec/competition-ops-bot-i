@@ -202,38 +202,29 @@ func (b *Bot) handleBlack(entries []*Black) error {
 
 	// var leads []string
 	for _, entry := range entries {
-		// Dereference *Entry → Entry
-		v := reflect.ValueOf(entry).Elem()
-		t := v.Type()
+		// Dereference *Entry
+		entryVal := reflect.ValueOf(entry).Elem()
+		entryType := entryVal.Type()
 
-		for i := 0; i < v.NumField(); i++ {
-			fieldVal := v.Field(i)
-
-			// All fields are strings, but be defensive
-			if fieldVal.Kind() != reflect.String {
-				continue
-			}
-
-			username := fieldVal.String()
+		// Iterate over each entry field
+		for i := 0; i < entryVal.NumField(); i++ {
+			// Get username from the value of the individual entry
+			username := entryVal.Field(i).String()
 			if username == "" {
 				continue
 			}
-			log.Println(username)
-
-			fieldName := t.Field(i).Name
-
-			team, ok := teams[fieldName]
-			if !ok {
-				continue // skip non-team fields (School, TeamNum, etc.)
-			}
-			log.Println(fieldName, team)
 
 			u, err := b.createUser(username)
 			if err != nil {
 				return err
 			}
 
-			team.Update().
+			// Get subteam and the corresponding pointer to team entity
+			subteam := entryType.Field(i).Name
+			t := teams[subteam]
+
+			// Add user to team
+			t.Update().
 				AddUser(u).
 				Save(b.ClientCtx)
 		}
