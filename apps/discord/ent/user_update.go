@@ -28,6 +28,20 @@ func (_u *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return _u
 }
 
+// SetUID sets the "uid" field.
+func (_u *UserUpdate) SetUID(v string) *UserUpdate {
+	_u.mutation.SetUID(v)
+	return _u
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableUID(v *string) *UserUpdate {
+	if v != nil {
+		_u.SetUID(*v)
+	}
+	return _u
+}
+
 // SetUsername sets the "username" field.
 func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
 	_u.mutation.SetUsername(v)
@@ -108,6 +122,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UID(); ok {
+		_spec.SetField(user.FieldUID, field.TypeString, value)
+	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 	}
@@ -158,6 +175,20 @@ type UserUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserMutation
+}
+
+// SetUID sets the "uid" field.
+func (_u *UserUpdateOne) SetUID(v string) *UserUpdateOne {
+	_u.mutation.SetUID(v)
+	return _u
+}
+
+// SetNillableUID sets the "uid" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableUID(v *string) *UserUpdateOne {
+	if v != nil {
+		_u.SetUID(*v)
+	}
+	return _u
 }
 
 // SetUsername sets the "username" field.
@@ -269,6 +300,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.UID(); ok {
+		_spec.SetField(user.FieldUID, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)

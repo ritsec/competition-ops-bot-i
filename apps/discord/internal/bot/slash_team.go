@@ -2,19 +2,16 @@ package bot
 
 import (
 	"fmt"
-	"io"
 	"log"
-	"net/http"
-	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gocarina/gocsv"
+	"github.com/google/uuid"
 	"github.com/ritsec/competition-ops-bot-i/ent"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
+	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
 type Entry struct {
@@ -86,7 +83,7 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 
 			// Populate array of entries from CSV
 			initialMessage(s, i, "Downloading and parsing file...")
-			entries, err := fileHandler(fileURL)
+			entries, err := utils.HandleCSV[Entry](fileURL)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -94,7 +91,7 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 			// Handle according to command option
 			updateMessage(s, i, "Updating database...")
 			switch team {
-			case "Blue":
+			case "Blue": // TODO: handle errors
 				b.handleBlue(entries)
 			case "Red":
 				b.handleRed(entries)
@@ -148,15 +145,14 @@ func (b *Bot) handleBlue(entries []*Entry) error {
 			entry.Teammate4,
 			entry.Teammate5,
 		} {
-			// Create user and add to team
-			u, err := b.Client.User.
-				Create().
-				SetUsername(username).
-				Save(b.ClientCtx)
-			if err != nil {
-				return err
+			if username != "" {
+				// Create user and add to team
+				u, err := b.createUser(username)
+				if err != nil {
+					return err
+				}
+				t.Update().AddUser(u).Save(b.ClientCtx)
 			}
-			t.Update().AddUser(u).Save(b.ClientCtx)
 		}
 		log.Println(entry)
 	}
@@ -190,73 +186,24 @@ func (b *Bot) handleRed(entries []*Entry) error {
 
 	var leads []string
 	for _, entry := range entries {
+		username := entry.Members
+
 		// Create user from Members column and add them to Red team
-		if entry.Members != "" {
-			u, err := b.Client.User.
-				Create().
-				SetUsername(entry.Members).
-				Save(b.ClientCtx)
+		if username != "" {
+			u, err := b.createUser(username)
 			if err != nil {
 				return err
 			}
 			t.Update().AddUser(u).Save(b.ClientCtx)
 		}
-		// Create user from Leads column and add them to Red team
+		// Add user to list of leads
 		if entry.Leads != "" {
-			u, err := b.Client.User.
-				Create().
-				SetUsername(entry.Leads).
-				Save(b.ClientCtx)
-			if err != nil {
-				return err
-			}
-			t.Update().AddUser(u).Save(b.ClientCtx)
 			leads = append(leads, entry.Leads) // Add to leads array
 		}
 	}
 	t.Update().SetLead(strings.Join(leads, ",")) // Set leads field of team to be a comma separated list
 
 	return nil
-}
-
-func fileHandler(URL string) ([]*Entry, error) {
-	// Create temp file
-	filename := fmt.Sprintf("download-%s.csv", time.Now())
-	temp, err := os.CreateTemp("/tmp", filename)
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(temp.Name())
-	defer temp.Close()
-
-	// Download file
-	resp, err := http.Get(URL)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting file")
-	}
-	defer resp.Body.Close()
-
-	// Copy file content to temp file
-	_, err = io.Copy(temp, resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	// Set offset to beginning of file
-	if _, err := temp.Seek(0, 0); err != nil {
-		return nil, err
-	}
-
-	// Unmarshal file based on Entry struct
-	var entries []*Entry
-	if unmarshalError := gocsv.UnmarshalFile(temp, &entries); unmarshalError != nil {
-		panic(unmarshalError)
-	}
-
-	return entries, nil
 }
 
 // addRoles adds an array of roles to a team via edges
@@ -273,4 +220,16 @@ func (b *Bot) addRoles(team *ent.Team, roles ...string) error {
 		team.Update().AddRole(r).Save(b.ClientCtx)
 	}
 	return nil
+}
+
+// createUser is a helper function to create a user with the given username
+// and a default UUID.
+func (b *Bot) createUser(username string) (*ent.User, error) {
+	u, err := b.Client.User.
+		Create().
+		SetUID(uuid.New().String()). // Set temporary uuid to be changed on join event
+		SetUsername(username).
+		Save(b.ClientCtx)
+
+	return u, err
 }
