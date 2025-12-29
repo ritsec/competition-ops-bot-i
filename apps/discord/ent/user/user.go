@@ -12,6 +12,8 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldUID holds the string denoting the uid field in the database.
+	FieldUID = "uid"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// EdgeTeam holds the string denoting the team edge name in mutations.
@@ -30,6 +32,7 @@ const (
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldUID,
 	FieldUsername,
 }
 
@@ -60,6 +63,11 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUID orders the results by the uid field.
+func ByUID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUID, opts...).ToFunc()
 }
 
 // ByUsername orders the results by the username field.

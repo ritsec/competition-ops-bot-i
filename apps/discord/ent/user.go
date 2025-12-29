@@ -17,6 +17,8 @@ type User struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// Discord ID of user
+	UID string `json:"uid,omitempty"`
 	// Discord username
 	Username string `json:"username,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -53,7 +55,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldUsername:
+		case user.FieldUID, user.FieldUsername:
 			values[i] = new(sql.NullString)
 		case user.ForeignKeys[0]: // team_user
 			values[i] = new(sql.NullInt64)
@@ -78,6 +80,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
+		case user.FieldUID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field uid", values[i])
+			} else if value.Valid {
+				_m.UID = value.String
+			}
 		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field username", values[i])
@@ -132,6 +140,9 @@ func (_m *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("uid=")
+	builder.WriteString(_m.UID)
+	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)
 	builder.WriteByte(')')

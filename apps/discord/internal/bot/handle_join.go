@@ -21,6 +21,9 @@ func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 		return // TODO: Give a user a role to see a channel where they can request roles
 	}
 
+	// Update UID of user to their Discord UID
+	u.Update().SetUID(m.User.ID).Save(b.ClientCtx)
+
 	// Get user's team
 	t, err := u.QueryTeam().All(b.ClientCtx)
 	if err != nil {

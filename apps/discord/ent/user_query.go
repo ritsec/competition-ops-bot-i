@@ -299,12 +299,12 @@ func (_q *UserQuery) WithTeam(opts ...func(*TeamQuery)) *UserQuery {
 // Example:
 //
 //	var v []struct {
-//		Username string `json:"username,omitempty"`
+//		UID string `json:"uid,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldUsername).
+//		GroupBy(user.FieldUID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -322,11 +322,11 @@ func (_q *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Username string `json:"username,omitempty"`
+//		UID string `json:"uid,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldUsername).
+//		Select(user.FieldUID).
 //		Scan(ctx, &v)
 func (_q *UserQuery) Select(fields ...string) *UserSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

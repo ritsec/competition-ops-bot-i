@@ -14,6 +14,9 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
+		field.String("uid").
+			Comment("Discord ID of user").
+			Unique(),
 		field.String("username").
 			Comment("Discord username"),
 	}

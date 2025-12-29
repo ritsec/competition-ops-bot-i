@@ -53,9 +53,79 @@ func IDLTE(id int) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldID, id))
 }
 
+// UID applies equality check predicate on the "uid" field. It's identical to UIDEQ.
+func UID(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUID, v))
+}
+
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
+}
+
+// UIDEQ applies the EQ predicate on the "uid" field.
+func UIDEQ(v string) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldUID, v))
+}
+
+// UIDNEQ applies the NEQ predicate on the "uid" field.
+func UIDNEQ(v string) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldUID, v))
+}
+
+// UIDIn applies the In predicate on the "uid" field.
+func UIDIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldIn(FieldUID, vs...))
+}
+
+// UIDNotIn applies the NotIn predicate on the "uid" field.
+func UIDNotIn(vs ...string) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldUID, vs...))
+}
+
+// UIDGT applies the GT predicate on the "uid" field.
+func UIDGT(v string) predicate.User {
+	return predicate.User(sql.FieldGT(FieldUID, v))
+}
+
+// UIDGTE applies the GTE predicate on the "uid" field.
+func UIDGTE(v string) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldUID, v))
+}
+
+// UIDLT applies the LT predicate on the "uid" field.
+func UIDLT(v string) predicate.User {
+	return predicate.User(sql.FieldLT(FieldUID, v))
+}
+
+// UIDLTE applies the LTE predicate on the "uid" field.
+func UIDLTE(v string) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldUID, v))
+}
+
+// UIDContains applies the Contains predicate on the "uid" field.
+func UIDContains(v string) predicate.User {
+	return predicate.User(sql.FieldContains(FieldUID, v))
+}
+
+// UIDHasPrefix applies the HasPrefix predicate on the "uid" field.
+func UIDHasPrefix(v string) predicate.User {
+	return predicate.User(sql.FieldHasPrefix(FieldUID, v))
+}
+
+// UIDHasSuffix applies the HasSuffix predicate on the "uid" field.
+func UIDHasSuffix(v string) predicate.User {
+	return predicate.User(sql.FieldHasSuffix(FieldUID, v))
+}
+
+// UIDEqualFold applies the EqualFold predicate on the "uid" field.
+func UIDEqualFold(v string) predicate.User {
+	return predicate.User(sql.FieldEqualFold(FieldUID, v))
+}
+
+// UIDContainsFold applies the ContainsFold predicate on the "uid" field.
+func UIDContainsFold(v string) predicate.User {
+	return predicate.User(sql.FieldContainsFold(FieldUID, v))
 }
 
 // UsernameEQ applies the EQ predicate on the "username" field.
