@@ -63,6 +63,11 @@ func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
 }
 
+// Lead applies equality check predicate on the "lead" field. It's identical to LeadEQ.
+func Lead(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLead, v))
+}
+
 // UIDEQ applies the EQ predicate on the "uid" field.
 func UIDEQ(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUID, v))
@@ -191,6 +196,16 @@ func UsernameEqualFold(v string) predicate.User {
 // UsernameContainsFold applies the ContainsFold predicate on the "username" field.
 func UsernameContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldUsername, v))
+}
+
+// LeadEQ applies the EQ predicate on the "lead" field.
+func LeadEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldLead, v))
+}
+
+// LeadNEQ applies the NEQ predicate on the "lead" field.
+func LeadNEQ(v bool) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldLead, v))
 }
 
 // HasTeam applies the HasEdge predicate on the "team" edge.

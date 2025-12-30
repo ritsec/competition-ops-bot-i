@@ -5,6 +5,7 @@ package ent
 import (
 	"github.com/ritsec/competition-ops-bot-i/ent/schema"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
+	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -17,4 +18,10 @@ func init() {
 	teamDescLead := teamFields[0].Descriptor()
 	// team.DefaultLead holds the default value on creation for the lead field.
 	team.DefaultLead = teamDescLead.Default.(string)
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescLead is the schema descriptor for lead field.
+	userDescLead := userFields[2].Descriptor()
+	// user.DefaultLead holds the default value on creation for the lead field.
+	user.DefaultLead = userDescLead.Default.(bool)
 }

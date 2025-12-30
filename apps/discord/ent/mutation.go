@@ -1205,6 +1205,7 @@ type UserMutation struct {
 	id            *int
 	uid           *string
 	username      *string
+	lead          *bool
 	clearedFields map[string]struct{}
 	team          *int
 	clearedteam   bool
@@ -1383,6 +1384,42 @@ func (m *UserMutation) ResetUsername() {
 	m.username = nil
 }
 
+// SetLead sets the "lead" field.
+func (m *UserMutation) SetLead(b bool) {
+	m.lead = &b
+}
+
+// Lead returns the value of the "lead" field in the mutation.
+func (m *UserMutation) Lead() (r bool, exists bool) {
+	v := m.lead
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLead returns the old "lead" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldLead(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLead is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLead requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLead: %w", err)
+	}
+	return oldValue.Lead, nil
+}
+
+// ResetLead resets all changes to the "lead" field.
+func (m *UserMutation) ResetLead() {
+	m.lead = nil
+}
+
 // SetTeamID sets the "team" edge to the Team entity by id.
 func (m *UserMutation) SetTeamID(id int) {
 	m.team = &id
@@ -1456,12 +1493,15 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.uid != nil {
 		fields = append(fields, user.FieldUID)
 	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
+	}
+	if m.lead != nil {
+		fields = append(fields, user.FieldLead)
 	}
 	return fields
 }
@@ -1475,6 +1515,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.UID()
 	case user.FieldUsername:
 		return m.Username()
+	case user.FieldLead:
+		return m.Lead()
 	}
 	return nil, false
 }
@@ -1488,6 +1530,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUID(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
+	case user.FieldLead:
+		return m.OldLead(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1510,6 +1554,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsername(v)
+		return nil
+	case user.FieldLead:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLead(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
@@ -1565,6 +1616,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldUsername:
 		m.ResetUsername()
+		return nil
+	case user.FieldLead:
+		m.ResetLead()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

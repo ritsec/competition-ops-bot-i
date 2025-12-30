@@ -19,6 +19,9 @@ func (User) Fields() []ent.Field {
 			Unique(),
 		field.String("username").
 			Comment("Discord username"),
+		field.Bool("lead").
+			Comment("If user is a lead of their team").
+			Default(false),
 	}
 }
 

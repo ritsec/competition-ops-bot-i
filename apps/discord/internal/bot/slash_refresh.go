@@ -7,7 +7,9 @@ import (
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 )
 
-var NUM_BLUE_TEAMS = 15
+var (
+	NUM_BLUE_TEAMS = 15
+)
 
 func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{

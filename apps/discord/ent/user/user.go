@@ -16,6 +16,8 @@ const (
 	FieldUID = "uid"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
+	// FieldLead holds the string denoting the lead field in the database.
+	FieldLead = "lead"
 	// EdgeTeam holds the string denoting the team edge name in mutations.
 	EdgeTeam = "team"
 	// Table holds the table name of the user in the database.
@@ -34,6 +36,7 @@ var Columns = []string{
 	FieldID,
 	FieldUID,
 	FieldUsername,
+	FieldLead,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -57,6 +60,11 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultLead holds the default value on creation for the "lead" field.
+	DefaultLead bool
+)
+
 // OrderOption defines the ordering options for the User queries.
 type OrderOption func(*sql.Selector)
 
@@ -73,6 +81,11 @@ func ByUID(opts ...sql.OrderTermOption) OrderOption {
 // ByUsername orders the results by the username field.
 func ByUsername(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsername, opts...).ToFunc()
+}
+
+// ByLead orders the results by the lead field.
+func ByLead(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLead, opts...).ToFunc()
 }
 
 // ByTeamField orders the results by team field.

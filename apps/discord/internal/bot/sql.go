@@ -8,6 +8,7 @@ import (
 	"github.com/ritsec/competition-ops-bot-i/ent"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
+	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
 
 // map of teams to the name of their default roles
@@ -17,6 +18,7 @@ var defaultRole = map[string]string{
 	"black": "Black Team",
 }
 
+// map of Black subteams to the Ent schema enum
 var blackSubteams = map[string]team.Subteam{
 	"Infra":   team.SubteamInfra,
 	"Linux":   team.SubteamLinux,
@@ -111,7 +113,8 @@ func (b *Bot) getRed() (*ent.Team, error) {
 	return t, err
 }
 
-// getBlack handles requests to get/create Black Teams
+// getBlack handles requests to get/create Black Teams, returning a map
+// of the subteam name to the Ent team object
 func (b *Bot) getBlack() (map[string]*ent.Team, error) {
 	teams := make(map[string]*ent.Team)
 
@@ -141,6 +144,29 @@ func (b *Bot) getBlack() (map[string]*ent.Team, error) {
 		teams[name] = t
 	}
 
-	log.Println(teams)
 	return teams, nil
+}
+
+// addLeads takes an array of Discord usernames and sets their
+// 'lead' boolean column to true. This is used during the role assignment
+// during their join event.
+func (b *Bot) addLeads(leads []string) error {
+	for _, lead := range leads {
+		// Get user
+		u, err := b.Client.User.
+			Query().
+			Where(user.Username(lead)).
+			Only(b.ClientCtx)
+		if err != nil {
+			return err
+		}
+
+		// Set the user's lead value to true
+		_, err = u.Update().SetLead(true).Save(b.ClientCtx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

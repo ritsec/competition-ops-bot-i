@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
 
@@ -39,6 +40,22 @@ func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	// Assign roles from team
 	for _, r := range roles {
 		err := b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, r.ID)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// Give lead role if user is a lead
+	if u.Lead {
+		lead, err := b.Client.Role.
+			Query().
+			Where(role.Name("Leads")).
+			Only(b.ClientCtx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, lead.ID)
 		if err != nil {
 			log.Println(err)
 		}

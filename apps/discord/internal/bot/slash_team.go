@@ -4,7 +4,6 @@ import (
 	"log"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/internal/utils"
@@ -37,6 +36,7 @@ type Black struct {
 	Store   string `csv:"Store"`
 	CTF     string `csv:"CTF"`
 	KotH    string `csv:"KotH"`
+	Leads   string `csv:"Leads"`
 }
 
 func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -186,7 +186,8 @@ func (b *Bot) handleRed(entries []*Red) error {
 			leads = append(leads, entry.Leads) // Add to leads array
 		}
 	}
-	t.Update().SetLead(strings.Join(leads, ",")) // Set leads field of team to be a comma separated list
+	// t.Update().SetLead(strings.Join(leads, ",")) // Set leads field of team to be a comma separated list
+	b.addLeads(leads)
 
 	return nil
 }
@@ -200,7 +201,7 @@ func (b *Bot) handleBlack(entries []*Black) error {
 		return err
 	}
 
-	// var leads []string
+	var leads []string
 	for _, entry := range entries {
 		// Dereference *Entry
 		entryVal := reflect.ValueOf(entry).Elem()
@@ -208,6 +209,13 @@ func (b *Bot) handleBlack(entries []*Black) error {
 
 		// Iterate over each entry field
 		for i := 0; i < entryVal.NumField(); i++ {
+			// Check if the 'Leads' field has the username.
+			// We don't want to create a duplicate user, so add them
+			// to the leads array and continue.
+			if entryType.Field(i).Name == "Leads" {
+				leads = append(leads, entryVal.Field(i).String())
+				continue
+			}
 			// Get username from the value of the individual entry
 			username := entryVal.Field(i).String()
 			if username == "" {
@@ -229,6 +237,8 @@ func (b *Bot) handleBlack(entries []*Black) error {
 				Save(b.ClientCtx)
 		}
 	}
+
+	b.addLeads(leads)
 
 	return nil
 }

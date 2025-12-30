@@ -56,6 +56,20 @@ func (_u *UserUpdate) SetNillableUsername(v *string) *UserUpdate {
 	return _u
 }
 
+// SetLead sets the "lead" field.
+func (_u *UserUpdate) SetLead(v bool) *UserUpdate {
+	_u.mutation.SetLead(v)
+	return _u
+}
+
+// SetNillableLead sets the "lead" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableLead(v *bool) *UserUpdate {
+	if v != nil {
+		_u.SetLead(*v)
+	}
+	return _u
+}
+
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_u *UserUpdate) SetTeamID(id int) *UserUpdate {
 	_u.mutation.SetTeamID(id)
@@ -127,6 +141,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Lead(); ok {
+		_spec.SetField(user.FieldLead, field.TypeBool, value)
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -201,6 +218,20 @@ func (_u *UserUpdateOne) SetUsername(v string) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillableUsername(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetUsername(*v)
+	}
+	return _u
+}
+
+// SetLead sets the "lead" field.
+func (_u *UserUpdateOne) SetLead(v bool) *UserUpdateOne {
+	_u.mutation.SetLead(v)
+	return _u
+}
+
+// SetNillableLead sets the "lead" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableLead(v *bool) *UserUpdateOne {
+	if v != nil {
+		_u.SetLead(*v)
 	}
 	return _u
 }
@@ -306,6 +337,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Lead(); ok {
+		_spec.SetField(user.FieldLead, field.TypeBool, value)
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{

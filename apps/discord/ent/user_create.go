@@ -32,6 +32,20 @@ func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	return _c
 }
 
+// SetLead sets the "lead" field.
+func (_c *UserCreate) SetLead(v bool) *UserCreate {
+	_c.mutation.SetLead(v)
+	return _c
+}
+
+// SetNillableLead sets the "lead" field if the given value is not nil.
+func (_c *UserCreate) SetNillableLead(v *bool) *UserCreate {
+	if v != nil {
+		_c.SetLead(*v)
+	}
+	return _c
+}
+
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_c *UserCreate) SetTeamID(id int) *UserCreate {
 	_c.mutation.SetTeamID(id)
@@ -58,6 +72,7 @@ func (_c *UserCreate) Mutation() *UserMutation {
 
 // Save creates the User in the database.
 func (_c *UserCreate) Save(ctx context.Context) (*User, error) {
+	_c.defaults()
 	return withHooks(ctx, _c.sqlSave, _c.mutation, _c.hooks)
 }
 
@@ -83,6 +98,14 @@ func (_c *UserCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_c *UserCreate) defaults() {
+	if _, ok := _c.mutation.Lead(); !ok {
+		v := user.DefaultLead
+		_c.mutation.SetLead(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (_c *UserCreate) check() error {
 	if _, ok := _c.mutation.UID(); !ok {
@@ -90,6 +113,9 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
+	}
+	if _, ok := _c.mutation.Lead(); !ok {
+		return &ValidationError{Name: "lead", err: errors.New(`ent: missing required field "User.lead"`)}
 	}
 	return nil
 }
@@ -124,6 +150,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
 		_node.Username = value
+	}
+	if value, ok := _c.mutation.Lead(); ok {
+		_spec.SetField(user.FieldLead, field.TypeBool, value)
+		_node.Lead = value
 	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -163,6 +193,7 @@ func (_c *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 	for i := range _c.builders {
 		func(i int, root context.Context) {
 			builder := _c.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*UserMutation)
 				if !ok {
