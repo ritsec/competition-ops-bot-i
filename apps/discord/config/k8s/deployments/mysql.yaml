@@ -8,7 +8,7 @@ spec:
   - port: 3306
   selector:
     app: mysql
-  type: NodePort
+  clusterIPD: None
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,11 +31,15 @@ spec:
         name: mysql
         env:
           # Use secret in real usage
-        - name: MYSQL_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
               name: mysql-password
               key: password
+        - name: MYSQL_USER
+          value: cobi
+        - name: MYSQL_DATABASE
+          value: cobi
         ports:
         - containerPort: 3306
           name: mysql
