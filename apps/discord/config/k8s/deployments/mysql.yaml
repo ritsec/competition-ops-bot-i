@@ -8,7 +8,7 @@ spec:
   - port: 3306
   selector:
     app: mysql
-  clusterIPD: None
+  clusterIP: None
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -40,6 +40,8 @@ spec:
           value: cobi
         - name: MYSQL_DATABASE
           value: cobi
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: yes
         ports:
         - containerPort: 3306
           name: mysql
