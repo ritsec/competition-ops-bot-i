@@ -6,33 +6,49 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
+func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
 			Name:                     "ssh",
 			Description:              "Register an SSH key for Black Team",
 			DefaultMemberPermissions: &BlackTeam,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "option",
-					Description: "Option of add or remove",
-					Required:    true,
-					Choices: []*discordgo.ApplicationCommandOptionChoice{
+					Name:        "add",
+					Description: "Add SSH key",
+					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
+					Options: []*discordgo.ApplicationCommandOption{
 						{
-							Name:  "Add",
-							Value: "Add",
-						}, // TODO: Option to remove entry
+							Type:        discordgo.ApplicationCommandOptionSubCommand,
+							Name:        "key",
+							Description: "SSH Key input",
+							Options: []*discordgo.ApplicationCommandOption{
+								{
+									Type:        discordgo.ApplicationCommandOptionString,
+									Name:        "value",
+									Description: "SSH Key",
+									Required:    true,
+								},
+							},
+						},
 					},
 				},
 			},
 		},
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			choice := i.ApplicationCommandData().Options[0].StringValue()
+			// Get public key from SSH key add subcommand
+			key := i.ApplicationCommandData().Options[0].Options[0].Options[0].StringValue()
+			log.Println(key)
 
-			if choice == "Add" {
-				log.Println("received /SSH Add command")
-			} else {
-				return
+			// Get Ent user object
+			uid := i.Member.User.ID
+			u, err := b.getUser(uid)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			// Add key to user's 'key' field
+			if err := b.addKey(u, key); err != nil {
+				log.Fatal(err)
 			}
 		}
 }

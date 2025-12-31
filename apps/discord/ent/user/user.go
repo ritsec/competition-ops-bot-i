@@ -18,6 +18,8 @@ const (
 	FieldUsername = "username"
 	// FieldLead holds the string denoting the lead field in the database.
 	FieldLead = "lead"
+	// FieldKeys holds the string denoting the keys field in the database.
+	FieldKeys = "keys"
 	// EdgeTeam holds the string denoting the team edge name in mutations.
 	EdgeTeam = "team"
 	// Table holds the table name of the user in the database.
@@ -37,6 +39,7 @@ var Columns = []string{
 	FieldUID,
 	FieldUsername,
 	FieldLead,
+	FieldKeys,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"

@@ -1,4 +1,5 @@
 secrets.yaml
+config.yaml
 
 # Used to set env variables as part of development
 env.sh

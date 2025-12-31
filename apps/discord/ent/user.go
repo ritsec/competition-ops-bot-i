@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -23,6 +24,8 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// If user is a lead of their team
 	Lead bool `json:"lead,omitempty"`
+	// User's SSH key(s)
+	Keys []string `json:"keys,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -55,6 +58,8 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case user.FieldKeys:
+			values[i] = new([]byte)
 		case user.FieldLead:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
@@ -101,6 +106,14 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field lead", values[i])
 			} else if value.Valid {
 				_m.Lead = value.Bool
+			}
+		case user.FieldKeys:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field keys", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Keys); err != nil {
+					return fmt.Errorf("unmarshal field keys: %w", err)
+				}
 			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -158,6 +171,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("lead=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Lead))
+	builder.WriteString(", ")
+	builder.WriteString("keys=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Keys))
 	builder.WriteByte(')')
 	return builder.String()
 }

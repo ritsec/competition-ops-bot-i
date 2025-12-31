@@ -208,6 +208,16 @@ func LeadNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldLead, v))
 }
 
+// KeysIsNil applies the IsNil predicate on the "keys" field.
+func KeysIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldKeys))
+}
+
+// KeysNotNil applies the NotNil predicate on the "keys" field.
+func KeysNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldKeys))
+}
+
 // HasTeam applies the HasEdge predicate on the "team" edge.
 func HasTeam() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

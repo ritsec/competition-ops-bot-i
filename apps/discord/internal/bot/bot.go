@@ -40,7 +40,7 @@ func (b *Bot) Start() {
 	b.Session = session
 
 	// Populate the SlashCommands map
-	slashCommands["ssh"] = SSH
+	slashCommands["ssh"] = b.SSH
 	slashCommands["team"] = b.Team
 	slashCommands["refresh"] = b.Refresh
 

@@ -46,6 +46,12 @@ func (_c *UserCreate) SetNillableLead(v *bool) *UserCreate {
 	return _c
 }
 
+// SetKeys sets the "keys" field.
+func (_c *UserCreate) SetKeys(v []string) *UserCreate {
+	_c.mutation.SetKeys(v)
+	return _c
+}
+
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_c *UserCreate) SetTeamID(id int) *UserCreate {
 	_c.mutation.SetTeamID(id)
@@ -154,6 +160,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Lead(); ok {
 		_spec.SetField(user.FieldLead, field.TypeBool, value)
 		_node.Lead = value
+	}
+	if value, ok := _c.mutation.Keys(); ok {
+		_spec.SetField(user.FieldKeys, field.TypeJSON, value)
+		_node.Keys = value
 	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

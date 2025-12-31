@@ -58,6 +58,15 @@ func (b *Bot) createUser(username string) (*ent.User, error) {
 	return u, err
 }
 
+// getUser returns an Ent user object based on the provided Discord UID
+func (b *Bot) getUser(uid string) (*ent.User, error) {
+	u, err := b.Client.User.
+		Query().
+		Where(user.UID(uid)).
+		Only(b.ClientCtx)
+	return u, err
+}
+
 // getBlue handles requests to get/create Blue Teams
 func (b *Bot) getBlue(i int) (*ent.Team, error) {
 	// Check if team already exists
@@ -168,5 +177,14 @@ func (b *Bot) addLeads(leads []string) error {
 		}
 	}
 
+	return nil
+}
+
+// addKey adds an SSH key to the user's 'key' field
+func (b *Bot) addKey(u *ent.User, key string) error {
+	_, err := u.Update().AppendKeys([]string{key}).Save(b.ClientCtx)
+	if err != nil {
+		return err
+	}
 	return nil
 }

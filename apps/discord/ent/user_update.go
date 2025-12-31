@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
@@ -67,6 +68,24 @@ func (_u *UserUpdate) SetNillableLead(v *bool) *UserUpdate {
 	if v != nil {
 		_u.SetLead(*v)
 	}
+	return _u
+}
+
+// SetKeys sets the "keys" field.
+func (_u *UserUpdate) SetKeys(v []string) *UserUpdate {
+	_u.mutation.SetKeys(v)
+	return _u
+}
+
+// AppendKeys appends value to the "keys" field.
+func (_u *UserUpdate) AppendKeys(v []string) *UserUpdate {
+	_u.mutation.AppendKeys(v)
+	return _u
+}
+
+// ClearKeys clears the value of the "keys" field.
+func (_u *UserUpdate) ClearKeys() *UserUpdate {
+	_u.mutation.ClearKeys()
 	return _u
 }
 
@@ -144,6 +163,17 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Lead(); ok {
 		_spec.SetField(user.FieldLead, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Keys(); ok {
+		_spec.SetField(user.FieldKeys, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedKeys(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldKeys, value)
+		})
+	}
+	if _u.mutation.KeysCleared() {
+		_spec.ClearField(user.FieldKeys, field.TypeJSON)
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -233,6 +263,24 @@ func (_u *UserUpdateOne) SetNillableLead(v *bool) *UserUpdateOne {
 	if v != nil {
 		_u.SetLead(*v)
 	}
+	return _u
+}
+
+// SetKeys sets the "keys" field.
+func (_u *UserUpdateOne) SetKeys(v []string) *UserUpdateOne {
+	_u.mutation.SetKeys(v)
+	return _u
+}
+
+// AppendKeys appends value to the "keys" field.
+func (_u *UserUpdateOne) AppendKeys(v []string) *UserUpdateOne {
+	_u.mutation.AppendKeys(v)
+	return _u
+}
+
+// ClearKeys clears the value of the "keys" field.
+func (_u *UserUpdateOne) ClearKeys() *UserUpdateOne {
+	_u.mutation.ClearKeys()
 	return _u
 }
 
@@ -340,6 +388,17 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Lead(); ok {
 		_spec.SetField(user.FieldLead, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Keys(); ok {
+		_spec.SetField(user.FieldKeys, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedKeys(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, user.FieldKeys, value)
+		})
+	}
+	if _u.mutation.KeysCleared() {
+		_spec.ClearField(user.FieldKeys, field.TypeJSON)
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{

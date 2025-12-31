@@ -1206,6 +1206,8 @@ type UserMutation struct {
 	uid           *string
 	username      *string
 	lead          *bool
+	keys          *[]string
+	appendkeys    []string
 	clearedFields map[string]struct{}
 	team          *int
 	clearedteam   bool
@@ -1420,6 +1422,71 @@ func (m *UserMutation) ResetLead() {
 	m.lead = nil
 }
 
+// SetKeys sets the "keys" field.
+func (m *UserMutation) SetKeys(s []string) {
+	m.keys = &s
+	m.appendkeys = nil
+}
+
+// Keys returns the value of the "keys" field in the mutation.
+func (m *UserMutation) Keys() (r []string, exists bool) {
+	v := m.keys
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKeys returns the old "keys" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldKeys(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKeys is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKeys requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKeys: %w", err)
+	}
+	return oldValue.Keys, nil
+}
+
+// AppendKeys adds s to the "keys" field.
+func (m *UserMutation) AppendKeys(s []string) {
+	m.appendkeys = append(m.appendkeys, s...)
+}
+
+// AppendedKeys returns the list of values that were appended to the "keys" field in this mutation.
+func (m *UserMutation) AppendedKeys() ([]string, bool) {
+	if len(m.appendkeys) == 0 {
+		return nil, false
+	}
+	return m.appendkeys, true
+}
+
+// ClearKeys clears the value of the "keys" field.
+func (m *UserMutation) ClearKeys() {
+	m.keys = nil
+	m.appendkeys = nil
+	m.clearedFields[user.FieldKeys] = struct{}{}
+}
+
+// KeysCleared returns if the "keys" field was cleared in this mutation.
+func (m *UserMutation) KeysCleared() bool {
+	_, ok := m.clearedFields[user.FieldKeys]
+	return ok
+}
+
+// ResetKeys resets all changes to the "keys" field.
+func (m *UserMutation) ResetKeys() {
+	m.keys = nil
+	m.appendkeys = nil
+	delete(m.clearedFields, user.FieldKeys)
+}
+
 // SetTeamID sets the "team" edge to the Team entity by id.
 func (m *UserMutation) SetTeamID(id int) {
 	m.team = &id
@@ -1493,7 +1560,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.uid != nil {
 		fields = append(fields, user.FieldUID)
 	}
@@ -1502,6 +1569,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.lead != nil {
 		fields = append(fields, user.FieldLead)
+	}
+	if m.keys != nil {
+		fields = append(fields, user.FieldKeys)
 	}
 	return fields
 }
@@ -1517,6 +1587,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Username()
 	case user.FieldLead:
 		return m.Lead()
+	case user.FieldKeys:
+		return m.Keys()
 	}
 	return nil, false
 }
@@ -1532,6 +1604,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldUsername(ctx)
 	case user.FieldLead:
 		return m.OldLead(ctx)
+	case user.FieldKeys:
+		return m.OldKeys(ctx)
 	}
 	return nil, fmt.Errorf("unknown User field %s", name)
 }
@@ -1562,6 +1636,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLead(v)
 		return nil
+	case user.FieldKeys:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKeys(v)
+		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)
 }
@@ -1591,7 +1672,11 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *UserMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(user.FieldKeys) {
+		fields = append(fields, user.FieldKeys)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1604,6 +1689,11 @@ func (m *UserMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *UserMutation) ClearField(name string) error {
+	switch name {
+	case user.FieldKeys:
+		m.ClearKeys()
+		return nil
+	}
 	return fmt.Errorf("unknown User nullable field %s", name)
 }
 
@@ -1619,6 +1709,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldLead:
 		m.ResetLead()
+		return nil
+	case user.FieldKeys:
+		m.ResetKeys()
 		return nil
 	}
 	return fmt.Errorf("unknown User field %s", name)

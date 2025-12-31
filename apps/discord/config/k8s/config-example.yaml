@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: discord-environment
+data:
+  guild: "<GUILD_ID>"
+  app: "<APP_ID>"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-environment
+data:
+  user: "root"
+  host: "mysql"
+  port: 3306
+  db: "<DATABASE_NAME>"

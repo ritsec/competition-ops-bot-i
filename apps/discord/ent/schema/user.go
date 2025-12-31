@@ -22,6 +22,9 @@ func (User) Fields() []ent.Field {
 		field.Bool("lead").
 			Comment("If user is a lead of their team").
 			Default(false),
+		field.Strings("keys").
+			Comment("User's SSH key(s)").
+			Optional(),
 	}
 }
 
