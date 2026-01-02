@@ -77,7 +77,9 @@ func (b *Bot) getUserFromUsername(username string) (*ent.User, error) {
 	return u, err
 }
 
-// getBlue handles requests to get/create Blue Teams
+// getBlue handles requests to get/create Blue Teams.
+// This assumes that there are roles on the server correlating
+// to the number of blue teams specified in the global variable.
 func (b *Bot) getBlue(i int) (*ent.Team, error) {
 	// Check if team already exists
 	t, err := b.Client.Team.
@@ -155,8 +157,11 @@ func (b *Bot) getBlack() (map[string]*ent.Team, error) {
 				return nil, err
 			}
 
+			// TODO: Actually handle the error. This continue statement is for the sake of
+			// getting COBI ready in time for quals. Quals server doesn't have all the ISTS roles,
+			// so we don't want COBI to crash if the roles doesn't exist on the server
 			if err := b.addRoles(t, defaultRole["black"], name); err != nil {
-				return nil, err
+				continue
 			}
 
 		}

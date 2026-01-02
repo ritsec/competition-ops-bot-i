@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	NUM_BLUE_TEAMS = 15
+	// TODO: Find a better way to specify this. Env variables the best quick option.
+	// For the future, COBI should handle server setup as well.
+	NUM_BLUE_TEAMS = 18
 )
 
 func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -67,12 +69,13 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 						}
 					} // TODO: Update role
 				}
+				updateMessage(s, i, "Successfully refreshed server role data!")
 			case "Teams":
 				if err := b.createTeams(); err != nil {
 					log.Fatal(err)
 				}
+				updateMessage(s, i, "Successfully refreshed server team data!")
 			}
-			updateMessage(s, i, "Successfully refreshed server role data!")
 		}
 }
 
