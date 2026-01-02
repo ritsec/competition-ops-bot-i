@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cobi
+  namespace: competition-ops-bot-i
+spec:
+  selector:
+    matchLabels:
+      app: cobi
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: cobi
+    spec:
+      containers:
+      - image: ritsecops/competition-ops-bot-i:alpha
+        name: cobi
+        env:
+          # Use secret in real usage
+        - name: DISCORD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: discord-token
+              key: token
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: mysql-password
+              key: password
+        envFrom:
+        - configMapRef:
+            name: discord-environment
+        - configMapRef:
+            name: mysql-environment
+      imagePullSecrets:
+      - name: regcred
