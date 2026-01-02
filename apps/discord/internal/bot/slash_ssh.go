@@ -41,7 +41,7 @@ func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i
 
 			// Get Ent user object
 			uid := i.Member.User.ID
-			u, err := b.getUser(uid)
+			u, err := b.getUserFromUID(uid)
 			if err != nil {
 				log.Fatal(err)
 			}

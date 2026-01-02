@@ -146,6 +146,11 @@ func (b *Bot) handleBlue(entries []*Blue) error {
 			entry.Teammate5,
 		} {
 			if username != "" {
+				// Check if user already exists
+				if _, err := b.getUserFromUsername(username); err == nil {
+					continue
+				}
+
 				// Create user and add to team
 				u, err := b.createUser(username)
 				if err != nil {
@@ -173,6 +178,10 @@ func (b *Bot) handleRed(entries []*Red) error {
 	for _, entry := range entries {
 		username := entry.Members
 
+		// Check if user already exists
+		if _, err := b.getUserFromUsername(username); err == nil {
+			continue
+		}
 		// Create user from Members column and add them to Red team
 		if username != "" {
 			u, err := b.createUser(username)
@@ -219,6 +228,11 @@ func (b *Bot) handleBlack(entries []*Black) error {
 			// Get username from the value of the individual entry
 			username := entryVal.Field(i).String()
 			if username == "" {
+				continue
+			}
+
+			// Check if user already exists
+			if _, err := b.getUserFromUsername(username); err == nil {
 				continue
 			}
 

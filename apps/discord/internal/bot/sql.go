@@ -58,11 +58,21 @@ func (b *Bot) createUser(username string) (*ent.User, error) {
 	return u, err
 }
 
-// getUser returns an Ent user object based on the provided Discord UID
-func (b *Bot) getUser(uid string) (*ent.User, error) {
+// getUserFromUID returns an Ent user object based on the provided Discord UID
+func (b *Bot) getUserFromUID(uid string) (*ent.User, error) {
 	u, err := b.Client.User.
 		Query().
 		Where(user.UID(uid)).
+		Only(b.ClientCtx)
+	return u, err
+}
+
+// getUserFromUsername returns an Ent user object based on the provided Discord UID
+// TODO: Find a better way to check if user has already been processed
+func (b *Bot) getUserFromUsername(username string) (*ent.User, error) {
+	u, err := b.Client.User.
+		Query().
+		Where(user.Username(username)).
 		Only(b.ClientCtx)
 	return u, err
 }
