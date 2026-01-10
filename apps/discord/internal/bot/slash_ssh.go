@@ -1,8 +1,6 @@
 package bot
 
 import (
-	"log"
-
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -37,18 +35,21 @@ func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			// Get public key from SSH key add subcommand
 			key := i.ApplicationCommandData().Options[0].Options[0].Options[0].StringValue()
-			log.Println(key)
+			initialMessage(s, i, "Adding key to database...")
 
 			// Get Ent user object
 			uid := i.Member.User.ID
 			u, err := b.getUserFromUID(uid)
 			if err != nil {
-				log.Fatal(err)
+				updateMessage(s, i, "Hmmm, I can't find your user data. Please reach out to the server admins.")
+				return
 			}
 
 			// Add key to user's 'key' field
 			if err := b.addKey(u, key); err != nil {
-				log.Fatal(err)
+				updateMessage(s, i, "Failed adding key to user profile :(")
+				return
 			}
+			updateMessage(s, i, "Successfully added key to database!")
 		}
 }

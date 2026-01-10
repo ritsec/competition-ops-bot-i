@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ritsec/competition-ops-bot-i/ent/key"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
@@ -46,12 +47,6 @@ func (_c *UserCreate) SetNillableLead(v *bool) *UserCreate {
 	return _c
 }
 
-// SetKeys sets the "keys" field.
-func (_c *UserCreate) SetKeys(v []string) *UserCreate {
-	_c.mutation.SetKeys(v)
-	return _c
-}
-
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_c *UserCreate) SetTeamID(id int) *UserCreate {
 	_c.mutation.SetTeamID(id)
@@ -69,6 +64,21 @@ func (_c *UserCreate) SetNillableTeamID(id *int) *UserCreate {
 // SetTeam sets the "team" edge to the Team entity.
 func (_c *UserCreate) SetTeam(v *Team) *UserCreate {
 	return _c.SetTeamID(v.ID)
+}
+
+// AddKeyIDs adds the "key" edge to the Key entity by IDs.
+func (_c *UserCreate) AddKeyIDs(ids ...int) *UserCreate {
+	_c.mutation.AddKeyIDs(ids...)
+	return _c
+}
+
+// AddKey adds the "key" edges to the Key entity.
+func (_c *UserCreate) AddKey(v ...*Key) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddKeyIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -161,10 +171,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldLead, field.TypeBool, value)
 		_node.Lead = value
 	}
-	if value, ok := _c.mutation.Keys(); ok {
-		_spec.SetField(user.FieldKeys, field.TypeJSON, value)
-		_node.Keys = value
-	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -180,6 +186,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.team_user = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.KeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

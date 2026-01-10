@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
+	"github.com/ritsec/competition-ops-bot-i/ent/key"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
@@ -71,24 +71,6 @@ func (_u *UserUpdate) SetNillableLead(v *bool) *UserUpdate {
 	return _u
 }
 
-// SetKeys sets the "keys" field.
-func (_u *UserUpdate) SetKeys(v []string) *UserUpdate {
-	_u.mutation.SetKeys(v)
-	return _u
-}
-
-// AppendKeys appends value to the "keys" field.
-func (_u *UserUpdate) AppendKeys(v []string) *UserUpdate {
-	_u.mutation.AppendKeys(v)
-	return _u
-}
-
-// ClearKeys clears the value of the "keys" field.
-func (_u *UserUpdate) ClearKeys() *UserUpdate {
-	_u.mutation.ClearKeys()
-	return _u
-}
-
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_u *UserUpdate) SetTeamID(id int) *UserUpdate {
 	_u.mutation.SetTeamID(id)
@@ -108,6 +90,21 @@ func (_u *UserUpdate) SetTeam(v *Team) *UserUpdate {
 	return _u.SetTeamID(v.ID)
 }
 
+// AddKeyIDs adds the "key" edge to the Key entity by IDs.
+func (_u *UserUpdate) AddKeyIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddKeyIDs(ids...)
+	return _u
+}
+
+// AddKey adds the "key" edges to the Key entity.
+func (_u *UserUpdate) AddKey(v ...*Key) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddKeyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -117,6 +114,27 @@ func (_u *UserUpdate) Mutation() *UserMutation {
 func (_u *UserUpdate) ClearTeam() *UserUpdate {
 	_u.mutation.ClearTeam()
 	return _u
+}
+
+// ClearKey clears all "key" edges to the Key entity.
+func (_u *UserUpdate) ClearKey() *UserUpdate {
+	_u.mutation.ClearKey()
+	return _u
+}
+
+// RemoveKeyIDs removes the "key" edge to Key entities by IDs.
+func (_u *UserUpdate) RemoveKeyIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveKeyIDs(ids...)
+	return _u
+}
+
+// RemoveKey removes "key" edges to Key entities.
+func (_u *UserUpdate) RemoveKey(v ...*Key) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveKeyIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -164,17 +182,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Lead(); ok {
 		_spec.SetField(user.FieldLead, field.TypeBool, value)
 	}
-	if value, ok := _u.mutation.Keys(); ok {
-		_spec.SetField(user.FieldKeys, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedKeys(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, user.FieldKeys, value)
-		})
-	}
-	if _u.mutation.KeysCleared() {
-		_spec.ClearField(user.FieldKeys, field.TypeJSON)
-	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -197,6 +204,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.KeyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedKeyIDs(); len(nodes) > 0 && !_u.mutation.KeyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.KeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -266,24 +318,6 @@ func (_u *UserUpdateOne) SetNillableLead(v *bool) *UserUpdateOne {
 	return _u
 }
 
-// SetKeys sets the "keys" field.
-func (_u *UserUpdateOne) SetKeys(v []string) *UserUpdateOne {
-	_u.mutation.SetKeys(v)
-	return _u
-}
-
-// AppendKeys appends value to the "keys" field.
-func (_u *UserUpdateOne) AppendKeys(v []string) *UserUpdateOne {
-	_u.mutation.AppendKeys(v)
-	return _u
-}
-
-// ClearKeys clears the value of the "keys" field.
-func (_u *UserUpdateOne) ClearKeys() *UserUpdateOne {
-	_u.mutation.ClearKeys()
-	return _u
-}
-
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_u *UserUpdateOne) SetTeamID(id int) *UserUpdateOne {
 	_u.mutation.SetTeamID(id)
@@ -303,6 +337,21 @@ func (_u *UserUpdateOne) SetTeam(v *Team) *UserUpdateOne {
 	return _u.SetTeamID(v.ID)
 }
 
+// AddKeyIDs adds the "key" edge to the Key entity by IDs.
+func (_u *UserUpdateOne) AddKeyIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddKeyIDs(ids...)
+	return _u
+}
+
+// AddKey adds the "key" edges to the Key entity.
+func (_u *UserUpdateOne) AddKey(v ...*Key) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddKeyIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -312,6 +361,27 @@ func (_u *UserUpdateOne) Mutation() *UserMutation {
 func (_u *UserUpdateOne) ClearTeam() *UserUpdateOne {
 	_u.mutation.ClearTeam()
 	return _u
+}
+
+// ClearKey clears all "key" edges to the Key entity.
+func (_u *UserUpdateOne) ClearKey() *UserUpdateOne {
+	_u.mutation.ClearKey()
+	return _u
+}
+
+// RemoveKeyIDs removes the "key" edge to Key entities by IDs.
+func (_u *UserUpdateOne) RemoveKeyIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveKeyIDs(ids...)
+	return _u
+}
+
+// RemoveKey removes "key" edges to Key entities.
+func (_u *UserUpdateOne) RemoveKey(v ...*Key) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveKeyIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -389,17 +459,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	if value, ok := _u.mutation.Lead(); ok {
 		_spec.SetField(user.FieldLead, field.TypeBool, value)
 	}
-	if value, ok := _u.mutation.Keys(); ok {
-		_spec.SetField(user.FieldKeys, field.TypeJSON, value)
-	}
-	if value, ok := _u.mutation.AppendedKeys(); ok {
-		_spec.AddModifier(func(u *sql.UpdateBuilder) {
-			sqljson.Append(u, user.FieldKeys, value)
-		})
-	}
-	if _u.mutation.KeysCleared() {
-		_spec.ClearField(user.FieldKeys, field.TypeJSON)
-	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -422,6 +481,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.KeyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedKeyIDs(); len(nodes) > 0 && !_u.mutation.KeyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.KeyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.KeyTable,
+			Columns: user.KeyPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(key.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -18,10 +18,10 @@ const (
 	FieldUsername = "username"
 	// FieldLead holds the string denoting the lead field in the database.
 	FieldLead = "lead"
-	// FieldKeys holds the string denoting the keys field in the database.
-	FieldKeys = "keys"
 	// EdgeTeam holds the string denoting the team edge name in mutations.
 	EdgeTeam = "team"
+	// EdgeKey holds the string denoting the key edge name in mutations.
+	EdgeKey = "key"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// TeamTable is the table that holds the team relation/edge.
@@ -31,6 +31,11 @@ const (
 	TeamInverseTable = "teams"
 	// TeamColumn is the table column denoting the team relation/edge.
 	TeamColumn = "team_user"
+	// KeyTable is the table that holds the key relation/edge. The primary key declared below.
+	KeyTable = "user_key"
+	// KeyInverseTable is the table name for the Key entity.
+	// It exists in this package in order to avoid circular dependency with the "key" package.
+	KeyInverseTable = "keys"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -39,7 +44,6 @@ var Columns = []string{
 	FieldUID,
 	FieldUsername,
 	FieldLead,
-	FieldKeys,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
@@ -47,6 +51,12 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"team_user",
 }
+
+var (
+	// KeyPrimaryKey and KeyColumn2 are the table columns denoting the
+	// primary key for the key relation (M2M).
+	KeyPrimaryKey = []string{"user_id", "key_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -97,10 +107,31 @@ func ByTeamField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTeamStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByKeyCount orders the results by key count.
+func ByKeyCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newKeyStep(), opts...)
+	}
+}
+
+// ByKey orders the results by key terms.
+func ByKey(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newKeyStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newTeamStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TeamInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, TeamTable, TeamColumn),
+	)
+}
+func newKeyStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(KeyInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, KeyTable, KeyPrimaryKey...),
 	)
 }

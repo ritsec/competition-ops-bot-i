@@ -3,7 +3,6 @@
 package ent
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -24,8 +23,6 @@ type User struct {
 	Username string `json:"username,omitempty"`
 	// If user is a lead of their team
 	Lead bool `json:"lead,omitempty"`
-	// User's SSH key(s)
-	Keys []string `json:"keys,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -37,9 +34,11 @@ type User struct {
 type UserEdges struct {
 	// Team holds the value of the team edge.
 	Team *Team `json:"team,omitempty"`
+	// Key holds the value of the key edge.
+	Key []*Key `json:"key,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TeamOrErr returns the Team value or an error if the edge
@@ -53,13 +52,20 @@ func (e UserEdges) TeamOrErr() (*Team, error) {
 	return nil, &NotLoadedError{edge: "team"}
 }
 
+// KeyOrErr returns the Key value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) KeyOrErr() ([]*Key, error) {
+	if e.loadedTypes[1] {
+		return e.Key, nil
+	}
+	return nil, &NotLoadedError{edge: "key"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldKeys:
-			values[i] = new([]byte)
 		case user.FieldLead:
 			values[i] = new(sql.NullBool)
 		case user.FieldID:
@@ -107,14 +113,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Lead = value.Bool
 			}
-		case user.FieldKeys:
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field keys", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &_m.Keys); err != nil {
-					return fmt.Errorf("unmarshal field keys: %w", err)
-				}
-			}
 		case user.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field team_user", value)
@@ -138,6 +136,11 @@ func (_m *User) Value(name string) (ent.Value, error) {
 // QueryTeam queries the "team" edge of the User entity.
 func (_m *User) QueryTeam() *TeamQuery {
 	return NewUserClient(_m.config).QueryTeam(_m)
+}
+
+// QueryKey queries the "key" edge of the User entity.
+func (_m *User) QueryKey() *KeyQuery {
+	return NewUserClient(_m.config).QueryKey(_m)
 }
 
 // Update returns a builder for updating this User.
@@ -171,9 +174,6 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("lead=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Lead))
-	builder.WriteString(", ")
-	builder.WriteString("keys=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Keys))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -43,6 +43,7 @@ func (b *Bot) Start() {
 	slashCommands["ssh"] = b.SSH
 	slashCommands["team"] = b.Team
 	slashCommands["refresh"] = b.Refresh
+	slashCommands["query"] = b.Query
 
 	// Register slash commands
 	b.registerSlashCommands()

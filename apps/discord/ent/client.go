@@ -15,6 +15,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/ritsec/competition-ops-bot-i/ent/key"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
@@ -25,6 +26,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Key is the client for interacting with the Key builders.
+	Key *KeyClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// Team is the client for interacting with the Team builders.
@@ -42,6 +45,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Key = NewKeyClient(c.config)
 	c.Role = NewRoleClient(c.config)
 	c.Team = NewTeamClient(c.config)
 	c.User = NewUserClient(c.config)
@@ -137,6 +141,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:    ctx,
 		config: cfg,
+		Key:    NewKeyClient(cfg),
 		Role:   NewRoleClient(cfg),
 		Team:   NewTeamClient(cfg),
 		User:   NewUserClient(cfg),
@@ -159,6 +164,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:    ctx,
 		config: cfg,
+		Key:    NewKeyClient(cfg),
 		Role:   NewRoleClient(cfg),
 		Team:   NewTeamClient(cfg),
 		User:   NewUserClient(cfg),
@@ -168,7 +174,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Role.
+//		Key.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -190,6 +196,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.Key.Use(hooks...)
 	c.Role.Use(hooks...)
 	c.Team.Use(hooks...)
 	c.User.Use(hooks...)
@@ -198,6 +205,7 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.Key.Intercept(interceptors...)
 	c.Role.Intercept(interceptors...)
 	c.Team.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
@@ -206,6 +214,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *KeyMutation:
+		return c.Key.mutate(ctx, m)
 	case *RoleMutation:
 		return c.Role.mutate(ctx, m)
 	case *TeamMutation:
@@ -214,6 +224,155 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// KeyClient is a client for the Key schema.
+type KeyClient struct {
+	config
+}
+
+// NewKeyClient returns a client for the Key from the given config.
+func NewKeyClient(c config) *KeyClient {
+	return &KeyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `key.Hooks(f(g(h())))`.
+func (c *KeyClient) Use(hooks ...Hook) {
+	c.hooks.Key = append(c.hooks.Key, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `key.Intercept(f(g(h())))`.
+func (c *KeyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Key = append(c.inters.Key, interceptors...)
+}
+
+// Create returns a builder for creating a Key entity.
+func (c *KeyClient) Create() *KeyCreate {
+	mutation := newKeyMutation(c.config, OpCreate)
+	return &KeyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Key entities.
+func (c *KeyClient) CreateBulk(builders ...*KeyCreate) *KeyCreateBulk {
+	return &KeyCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *KeyClient) MapCreateBulk(slice any, setFunc func(*KeyCreate, int)) *KeyCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &KeyCreateBulk{err: fmt.Errorf("calling to KeyClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*KeyCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &KeyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Key.
+func (c *KeyClient) Update() *KeyUpdate {
+	mutation := newKeyMutation(c.config, OpUpdate)
+	return &KeyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *KeyClient) UpdateOne(_m *Key) *KeyUpdateOne {
+	mutation := newKeyMutation(c.config, OpUpdateOne, withKey(_m))
+	return &KeyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *KeyClient) UpdateOneID(id int) *KeyUpdateOne {
+	mutation := newKeyMutation(c.config, OpUpdateOne, withKeyID(id))
+	return &KeyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Key.
+func (c *KeyClient) Delete() *KeyDelete {
+	mutation := newKeyMutation(c.config, OpDelete)
+	return &KeyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *KeyClient) DeleteOne(_m *Key) *KeyDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *KeyClient) DeleteOneID(id int) *KeyDeleteOne {
+	builder := c.Delete().Where(key.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &KeyDeleteOne{builder}
+}
+
+// Query returns a query builder for Key.
+func (c *KeyClient) Query() *KeyQuery {
+	return &KeyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeKey},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Key entity by its id.
+func (c *KeyClient) Get(ctx context.Context, id int) (*Key, error) {
+	return c.Query().Where(key.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *KeyClient) GetX(ctx context.Context, id int) *Key {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Key.
+func (c *KeyClient) QueryUser(_m *Key) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(key.Table, key.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, key.UserTable, key.UserPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *KeyClient) Hooks() []Hook {
+	return c.hooks.Key
+}
+
+// Interceptors returns the client interceptors.
+func (c *KeyClient) Interceptors() []Interceptor {
+	return c.inters.Key
+}
+
+func (c *KeyClient) mutate(ctx context.Context, m *KeyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&KeyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&KeyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&KeyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&KeyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Key mutation op: %q", m.Op())
 	}
 }
 
@@ -655,6 +814,22 @@ func (c *UserClient) QueryTeam(_m *User) *TeamQuery {
 	return query
 }
 
+// QueryKey queries the key edge of a User.
+func (c *UserClient) QueryKey(_m *User) *KeyQuery {
+	query := (&KeyClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(key.Table, key.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.KeyTable, user.KeyPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -683,9 +858,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Role, Team, User []ent.Hook
+		Key, Role, Team, User []ent.Hook
 	}
 	inters struct {
-		Role, Team, User []ent.Interceptor
+		Key, Role, Team, User []ent.Interceptor
 	}
 )

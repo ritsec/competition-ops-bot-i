@@ -8,6 +8,17 @@ import (
 )
 
 var (
+	// KeysColumns holds the columns for the "keys" table.
+	KeysColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "keys", Type: field.TypeJSON},
+	}
+	// KeysTable holds the schema information for the "keys" table.
+	KeysTable = &schema.Table{
+		Name:       "keys",
+		Columns:    KeysColumns,
+		PrimaryKey: []*schema.Column{KeysColumns[0]},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString, Unique: true},
@@ -39,7 +50,6 @@ var (
 		{Name: "uid", Type: field.TypeString, Unique: true},
 		{Name: "username", Type: field.TypeString},
 		{Name: "lead", Type: field.TypeBool, Default: false},
-		{Name: "keys", Type: field.TypeJSON, Nullable: true},
 		{Name: "team_user", Type: field.TypeInt, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -50,7 +60,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_teams_user",
-				Columns:    []*schema.Column{UsersColumns[5]},
+				Columns:    []*schema.Column{UsersColumns[4]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -81,12 +91,39 @@ var (
 			},
 		},
 	}
+	// UserKeyColumns holds the columns for the "user_key" table.
+	UserKeyColumns = []*schema.Column{
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "key_id", Type: field.TypeInt},
+	}
+	// UserKeyTable holds the schema information for the "user_key" table.
+	UserKeyTable = &schema.Table{
+		Name:       "user_key",
+		Columns:    UserKeyColumns,
+		PrimaryKey: []*schema.Column{UserKeyColumns[0], UserKeyColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_key_user_id",
+				Columns:    []*schema.Column{UserKeyColumns[0]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "user_key_key_id",
+				Columns:    []*schema.Column{UserKeyColumns[1]},
+				RefColumns: []*schema.Column{KeysColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		KeysTable,
 		RolesTable,
 		TeamsTable,
 		UsersTable,
 		TeamRoleTable,
+		UserKeyTable,
 	}
 )
 
@@ -94,4 +131,6 @@ func init() {
 	UsersTable.ForeignKeys[0].RefTable = TeamsTable
 	TeamRoleTable.ForeignKeys[0].RefTable = TeamsTable
 	TeamRoleTable.ForeignKeys[1].RefTable = RolesTable
+	UserKeyTable.ForeignKeys[0].RefTable = UsersTable
+	UserKeyTable.ForeignKeys[1].RefTable = KeysTable
 }

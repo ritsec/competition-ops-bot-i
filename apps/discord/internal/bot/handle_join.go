@@ -2,7 +2,6 @@ package bot
 
 import (
 	"log"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
@@ -10,7 +9,7 @@ import (
 )
 
 func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
-	username := strings.ToLower(m.User.Username)
+	username := m.User.Username
 
 	// Query Ent for user
 	u, err := b.Client.User.

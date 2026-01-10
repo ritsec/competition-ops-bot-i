@@ -22,9 +22,6 @@ func (User) Fields() []ent.Field {
 		field.Bool("lead").
 			Comment("If user is a lead of their team").
 			Default(false),
-		field.Strings("keys").
-			Comment("User's SSH key(s)").
-			Optional(),
 	}
 }
 
@@ -34,5 +31,6 @@ func (User) Edges() []ent.Edge {
 		edge.From("team", Team.Type).
 			Ref("user").
 			Unique(), // each user belongs to ONE team
+		edge.To("key", Key.Type),
 	}
 }

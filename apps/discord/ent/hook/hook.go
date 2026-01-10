@@ -9,6 +9,18 @@ import (
 	"github.com/ritsec/competition-ops-bot-i/ent"
 )
 
+// The KeyFunc type is an adapter to allow the use of ordinary
+// function as Key mutator.
+type KeyFunc func(context.Context, *ent.KeyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f KeyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.KeyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.KeyMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)

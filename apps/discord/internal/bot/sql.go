@@ -197,9 +197,20 @@ func (b *Bot) addLeads(leads []string) error {
 
 // addKey adds an SSH key to the user's 'key' field
 func (b *Bot) addKey(u *ent.User, key string) error {
-	_, err := u.Update().AppendKeys([]string{key}).Save(b.ClientCtx)
+	// Check if user already has SSH key in database
+	k, err := u.QueryKey().Only(b.ClientCtx)
+	if err != nil { // If it doesn't exist, create the key edge
+		k, err = b.Client.Key.
+			Create().
+			SetKeys([]string{key}).
+			Save(b.ClientCtx)
+	}
+
+	// Add the key to the user's edge
+	_, err = u.Update().AddKey(k).Save(b.ClientCtx)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
