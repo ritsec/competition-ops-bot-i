@@ -3,7 +3,6 @@ package bot
 import (
 	"context"
 	"net/http"
-	"testing"
 
 	. "gopkg.in/check.v1"
 
@@ -21,8 +20,6 @@ import (
 	"github.com/ewohltman/discordgo-mock/mockstate"
 	"github.com/ewohltman/discordgo-mock/mockuser"
 )
-
-func Test(t *testing.T) { TestingT(t) }
 
 type handlerSuite struct {
 	session   *discordgo.Session
@@ -71,7 +68,7 @@ func (h *handlerSuite) TearDownTest(c *C) {
 	}
 }
 
-// // mockServer returns a pointer to a DiscordGo state with test server data
+// mockServer returns a pointer to a DiscordGo state with test server data
 // that will be used to create the mock session. When creating the mock data,
 // it will also populate the Ent database accordingly.
 func (h *handlerSuite) mockServer() (*discordgo.State, error) {
@@ -103,6 +100,7 @@ func (h *handlerSuite) mockServer() (*discordgo.State, error) {
 		return nil, err
 	}
 
+	// Fill Blue roles array
 	h.rolesBlue = []string{
 		roleBlueCommon.ID,
 		roleBlueTeam.ID,

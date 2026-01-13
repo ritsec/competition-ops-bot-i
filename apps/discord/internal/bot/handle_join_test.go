@@ -1,6 +1,8 @@
 package bot
 
 import (
+	"testing"
+
 	. "gopkg.in/check.v1"
 
 	"github.com/bwmarrin/discordgo"
@@ -9,6 +11,8 @@ import (
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
+
+func Test(t *testing.T) { TestingT(t) }
 
 func (h *handlerSuite) TestJoinBlue(c *C) {
 	// Create instance of bot to use its methods for setup
