@@ -274,6 +274,29 @@ func HasRoleWith(preds ...predicate.Role) predicate.Team {
 	})
 }
 
+// HasCredential applies the HasEdge predicate on the "credential" edge.
+func HasCredential() predicate.Team {
+	return predicate.Team(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, CredentialTable, CredentialColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasCredentialWith applies the HasEdge predicate on the "credential" edge with a given conditions (other predicates).
+func HasCredentialWith(preds ...predicate.Credential) predicate.Team {
+	return predicate.Team(func(s *sql.Selector) {
+		step := newCredentialStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Team) predicate.Team {
 	return predicate.Team(sql.AndPredicates(predicates...))

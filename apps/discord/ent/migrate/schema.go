@@ -8,6 +8,29 @@ import (
 )
 
 var (
+	// CredentialsColumns holds the columns for the "credentials" table.
+	CredentialsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "number", Type: field.TypeInt, Unique: true},
+		{Name: "compsole", Type: field.TypeString},
+		{Name: "scorify", Type: field.TypeString},
+		{Name: "authentik", Type: field.TypeString},
+		{Name: "team_credential", Type: field.TypeInt, Nullable: true},
+	}
+	// CredentialsTable holds the schema information for the "credentials" table.
+	CredentialsTable = &schema.Table{
+		Name:       "credentials",
+		Columns:    CredentialsColumns,
+		PrimaryKey: []*schema.Column{CredentialsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "credentials_teams_credential",
+				Columns:    []*schema.Column{CredentialsColumns[5]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// KeysColumns holds the columns for the "keys" table.
 	KeysColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -118,6 +141,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CredentialsTable,
 		KeysTable,
 		RolesTable,
 		TeamsTable,
@@ -128,6 +152,7 @@ var (
 )
 
 func init() {
+	CredentialsTable.ForeignKeys[0].RefTable = TeamsTable
 	UsersTable.ForeignKeys[0].RefTable = TeamsTable
 	TeamRoleTable.ForeignKeys[0].RefTable = TeamsTable
 	TeamRoleTable.ForeignKeys[1].RefTable = RolesTable

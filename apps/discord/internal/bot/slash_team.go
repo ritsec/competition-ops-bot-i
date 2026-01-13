@@ -81,13 +81,13 @@ func (b *Bot) Team() (*discordgo.ApplicationCommand, func(s *discordgo.Session, 
 			// Get team option from interaction
 			team := i.ApplicationCommandData().Options[0].StringValue()
 
+			// Populate array of entries from CSV
+			initialMessage(s, i, "Downloading and parsing file...")
+
 			// Get file URL
 			fileID := i.ApplicationCommandData().Options[1].Value.(string)
 			fileURL := i.ApplicationCommandData().Resolved.Attachments[fileID].URL
 			log.Printf("received %s\n", fileURL)
-
-			// Populate array of entries from CSV
-			initialMessage(s, i, "Downloading and parsing file...")
 
 			switch team {
 			case "Blue":

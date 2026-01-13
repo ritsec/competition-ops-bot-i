@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Credential is the predicate function for credential builders.
+type Credential func(*sql.Selector)
+
 // Key is the predicate function for key builders.
 type Key func(*sql.Selector)
 

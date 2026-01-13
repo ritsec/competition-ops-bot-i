@@ -44,6 +44,7 @@ func (b *Bot) Start() {
 	slashCommands["team"] = b.Team
 	slashCommands["refresh"] = b.Refresh
 	slashCommands["query"] = b.Query
+	slashCommands["creds"] = b.Creds
 
 	// Register slash commands
 	b.registerSlashCommands()

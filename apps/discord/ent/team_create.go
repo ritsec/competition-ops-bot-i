@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ritsec/competition-ops-bot-i/ent/credential"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
@@ -105,6 +106,21 @@ func (_c *TeamCreate) AddRole(v ...*Role) *TeamCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddRoleIDs(ids...)
+}
+
+// AddCredentialIDs adds the "credential" edge to the Credential entity by IDs.
+func (_c *TeamCreate) AddCredentialIDs(ids ...int) *TeamCreate {
+	_c.mutation.AddCredentialIDs(ids...)
+	return _c
+}
+
+// AddCredential adds the "credential" edges to the Credential entity.
+func (_c *TeamCreate) AddCredential(v ...*Credential) *TeamCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddCredentialIDs(ids...)
 }
 
 // Mutation returns the TeamMutation object of the builder.
@@ -237,6 +253,22 @@ func (_c *TeamCreate) createSpec() (*Team, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.CredentialIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   team.CredentialTable,
+			Columns: []string{team.CredentialColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(credential.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

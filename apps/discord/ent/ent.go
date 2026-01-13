@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/ritsec/competition-ops-bot-i/ent/credential"
 	"github.com/ritsec/competition-ops-bot-i/ent/key"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
@@ -76,10 +77,11 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			key.Table:  key.ValidColumn,
-			role.Table: role.ValidColumn,
-			team.Table: team.ValidColumn,
-			user.Table: user.ValidColumn,
+			credential.Table: credential.ValidColumn,
+			key.Table:        key.ValidColumn,
+			role.Table:       role.ValidColumn,
+			team.Table:       team.ValidColumn,
+			user.Table:       user.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

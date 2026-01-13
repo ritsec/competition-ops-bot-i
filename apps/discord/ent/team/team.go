@@ -26,6 +26,8 @@ const (
 	EdgeUser = "user"
 	// EdgeRole holds the string denoting the role edge name in mutations.
 	EdgeRole = "role"
+	// EdgeCredential holds the string denoting the credential edge name in mutations.
+	EdgeCredential = "credential"
 	// Table holds the table name of the team in the database.
 	Table = "teams"
 	// UserTable is the table that holds the user relation/edge.
@@ -40,6 +42,13 @@ const (
 	// RoleInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RoleInverseTable = "roles"
+	// CredentialTable is the table that holds the credential relation/edge.
+	CredentialTable = "credentials"
+	// CredentialInverseTable is the table name for the Credential entity.
+	// It exists in this package in order to avoid circular dependency with the "credential" package.
+	CredentialInverseTable = "credentials"
+	// CredentialColumn is the table column denoting the credential relation/edge.
+	CredentialColumn = "team_credential"
 )
 
 // Columns holds all SQL columns for team fields.
@@ -185,6 +194,20 @@ func ByRole(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRoleStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByCredentialCount orders the results by credential count.
+func ByCredentialCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCredentialStep(), opts...)
+	}
+}
+
+// ByCredential orders the results by credential terms.
+func ByCredential(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCredentialStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -197,5 +220,12 @@ func newRoleStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RoleInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, RoleTable, RolePrimaryKey...),
+	)
+}
+func newCredentialStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CredentialInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CredentialTable, CredentialColumn),
 	)
 }

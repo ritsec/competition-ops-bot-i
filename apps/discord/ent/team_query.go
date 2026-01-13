@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ritsec/competition-ops-bot-i/ent/credential"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
@@ -21,12 +22,13 @@ import (
 // TeamQuery is the builder for querying Team entities.
 type TeamQuery struct {
 	config
-	ctx        *QueryContext
-	order      []team.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Team
-	withUser   *UserQuery
-	withRole   *RoleQuery
+	ctx            *QueryContext
+	order          []team.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.Team
+	withUser       *UserQuery
+	withRole       *RoleQuery
+	withCredential *CredentialQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -100,6 +102,28 @@ func (_q *TeamQuery) QueryRole() *RoleQuery {
 			sqlgraph.From(team.Table, team.FieldID, selector),
 			sqlgraph.To(role.Table, role.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, team.RoleTable, team.RolePrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCredential chains the current query on the "credential" edge.
+func (_q *TeamQuery) QueryCredential() *CredentialQuery {
+	query := (&CredentialClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, selector),
+			sqlgraph.To(credential.Table, credential.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, team.CredentialTable, team.CredentialColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -294,13 +318,14 @@ func (_q *TeamQuery) Clone() *TeamQuery {
 		return nil
 	}
 	return &TeamQuery{
-		config:     _q.config,
-		ctx:        _q.ctx.Clone(),
-		order:      append([]team.OrderOption{}, _q.order...),
-		inters:     append([]Interceptor{}, _q.inters...),
-		predicates: append([]predicate.Team{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withRole:   _q.withRole.Clone(),
+		config:         _q.config,
+		ctx:            _q.ctx.Clone(),
+		order:          append([]team.OrderOption{}, _q.order...),
+		inters:         append([]Interceptor{}, _q.inters...),
+		predicates:     append([]predicate.Team{}, _q.predicates...),
+		withUser:       _q.withUser.Clone(),
+		withRole:       _q.withRole.Clone(),
+		withCredential: _q.withCredential.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -326,6 +351,17 @@ func (_q *TeamQuery) WithRole(opts ...func(*RoleQuery)) *TeamQuery {
 		opt(query)
 	}
 	_q.withRole = query
+	return _q
+}
+
+// WithCredential tells the query-builder to eager-load the nodes that are connected to
+// the "credential" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *TeamQuery) WithCredential(opts ...func(*CredentialQuery)) *TeamQuery {
+	query := (&CredentialClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withCredential = query
 	return _q
 }
 
@@ -407,9 +443,10 @@ func (_q *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 	var (
 		nodes       = []*Team{}
 		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			_q.withUser != nil,
 			_q.withRole != nil,
+			_q.withCredential != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,6 +478,13 @@ func (_q *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 		if err := _q.loadRole(ctx, query, nodes,
 			func(n *Team) { n.Edges.Role = []*Role{} },
 			func(n *Team, e *Role) { n.Edges.Role = append(n.Edges.Role, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withCredential; query != nil {
+		if err := _q.loadCredential(ctx, query, nodes,
+			func(n *Team) { n.Edges.Credential = []*Credential{} },
+			func(n *Team, e *Credential) { n.Edges.Credential = append(n.Edges.Credential, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -536,6 +580,37 @@ func (_q *TeamQuery) loadRole(ctx context.Context, query *RoleQuery, nodes []*Te
 		for kn := range nodes {
 			assign(kn, n)
 		}
+	}
+	return nil
+}
+func (_q *TeamQuery) loadCredential(ctx context.Context, query *CredentialQuery, nodes []*Team, init func(*Team), assign func(*Team, *Credential)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Team)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Credential(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(team.CredentialColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.team_credential
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "team_credential" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "team_credential" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }
