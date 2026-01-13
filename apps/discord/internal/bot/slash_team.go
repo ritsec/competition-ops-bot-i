@@ -159,7 +159,6 @@ func (b *Bot) handleBlue(entries []*Blue) error {
 				t.Update().AddUser(u).Save(b.ClientCtx)
 			}
 		}
-		log.Println(entry)
 	}
 
 	return nil
