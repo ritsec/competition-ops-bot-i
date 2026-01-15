@@ -13,9 +13,6 @@ type Credential struct {
 // Fields of the Credential.
 func (Credential) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("number").
-			Comment("Team number").
-			Unique(),
 		field.String("compsole").
 			Comment("Compsole password"),
 		field.String("scorify").

@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/ritsec/competition-ops-bot-i/ent"
@@ -52,7 +53,7 @@ func (b *Bot) createUser(username string) (*ent.User, error) {
 	u, err := b.Client.User.
 		Create().
 		SetUID(uuid.New().String()). // Set temporary uuid to be changed on join event
-		SetUsername(username).
+		SetUsername(strings.ToLower(username)).
 		Save(b.ClientCtx)
 
 	return u, err

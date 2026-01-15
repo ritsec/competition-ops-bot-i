@@ -2,14 +2,15 @@ package bot
 
 import (
 	"log"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
 
-func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) error {
-	username := m.User.Username
+func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+	username := strings.ToLower(m.User.Username)
 
 	// Query Ent for user
 	u, err := b.Client.User.
@@ -18,7 +19,7 @@ func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) error {
 		Only(b.ClientCtx)
 	if err != nil {
 		log.Printf("user %s is not in database", username)
-		return err // TODO: Give a user a role to see a channel where they can request roles
+		return // TODO: Give a user a role to see a channel where they can request roles
 	}
 
 	// Update UID of user to their Discord UID
@@ -27,20 +28,20 @@ func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) error {
 	// Get user's team
 	t, err := u.QueryTeam().All(b.ClientCtx)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Get roles from team
 	roles, err := t[0].QueryRole().All(b.ClientCtx)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Assign roles from team
 	for _, r := range roles {
 		err := b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, r.ID)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
@@ -51,14 +52,12 @@ func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) error {
 			Where(role.Name("Leads")).
 			Only(b.ClientCtx)
 		if err != nil {
-			return err
+			return
 		}
 
 		err = b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, lead.ID)
 		if err != nil {
-			return err
+			return
 		}
 	}
-
-	return nil
 }

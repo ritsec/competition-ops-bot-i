@@ -52,11 +52,6 @@ func IDLTE(id int) predicate.Credential {
 	return predicate.Credential(sql.FieldLTE(FieldID, id))
 }
 
-// Number applies equality check predicate on the "number" field. It's identical to NumberEQ.
-func Number(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldNumber, v))
-}
-
 // Compsole applies equality check predicate on the "compsole" field. It's identical to CompsoleEQ.
 func Compsole(v string) predicate.Credential {
 	return predicate.Credential(sql.FieldEQ(FieldCompsole, v))
@@ -70,46 +65,6 @@ func Scorify(v string) predicate.Credential {
 // Authentik applies equality check predicate on the "authentik" field. It's identical to AuthentikEQ.
 func Authentik(v string) predicate.Credential {
 	return predicate.Credential(sql.FieldEQ(FieldAuthentik, v))
-}
-
-// NumberEQ applies the EQ predicate on the "number" field.
-func NumberEQ(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldNumber, v))
-}
-
-// NumberNEQ applies the NEQ predicate on the "number" field.
-func NumberNEQ(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldNumber, v))
-}
-
-// NumberIn applies the In predicate on the "number" field.
-func NumberIn(vs ...int) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldNumber, vs...))
-}
-
-// NumberNotIn applies the NotIn predicate on the "number" field.
-func NumberNotIn(vs ...int) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldNumber, vs...))
-}
-
-// NumberGT applies the GT predicate on the "number" field.
-func NumberGT(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldNumber, v))
-}
-
-// NumberGTE applies the GTE predicate on the "number" field.
-func NumberGTE(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldNumber, v))
-}
-
-// NumberLT applies the LT predicate on the "number" field.
-func NumberLT(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldNumber, v))
-}
-
-// NumberLTE applies the LTE predicate on the "number" field.
-func NumberLTE(v int) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldNumber, v))
 }
 
 // CompsoleEQ applies the EQ predicate on the "compsole" field.

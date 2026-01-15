@@ -39,10 +39,9 @@ func (h *handlerSuite) TestJoinBlue(c *C) {
 	}
 
 	// Simulate event of member join
-	err = bot.Join(h.session, &discordgo.GuildMemberAdd{
+	bot.Join(h.session, &discordgo.GuildMemberAdd{
 		Member: h.member,
 	})
-	c.Assert(err, IsNil)
 
 	// Check that user's UID field is changed to their Discord UID
 	uid, err := h.client.User.Query().

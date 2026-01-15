@@ -11,7 +11,6 @@ var (
 	// CredentialsColumns holds the columns for the "credentials" table.
 	CredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "number", Type: field.TypeInt, Unique: true},
 		{Name: "compsole", Type: field.TypeString},
 		{Name: "scorify", Type: field.TypeString},
 		{Name: "authentik", Type: field.TypeString},
@@ -25,7 +24,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "credentials_teams_credential",
-				Columns:    []*schema.Column{CredentialsColumns[5]},
+				Columns:    []*schema.Column{CredentialsColumns[4]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

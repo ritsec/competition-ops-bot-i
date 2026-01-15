@@ -71,17 +71,21 @@ func (b *Bot) handleCreds(entries []*Creds) error {
 		if err != nil {
 			return err
 		}
+		log.Println(t)
 
-		// Create credentials entry
-		c, err := b.Client.Credential.
-			Create().
-			SetNumber(num).
-			SetCompsole(entry.Compsole).
-			SetScorify(entry.Scorify).
-			SetAuthentik(entry.Authentik).
-			Save(b.ClientCtx)
+		// Check if credentials entry exists
+		c, err := t.QueryCredential().Only(b.ClientCtx)
 		if err != nil {
-			return err
+			// Create credentials entry
+			c, err = b.Client.Credential.
+				Create().
+				SetCompsole(entry.Compsole).
+				SetScorify(entry.Scorify).
+				SetAuthentik(entry.Authentik).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Add credential to team

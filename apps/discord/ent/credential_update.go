@@ -27,27 +27,6 @@ func (_u *CredentialUpdate) Where(ps ...predicate.Credential) *CredentialUpdate 
 	return _u
 }
 
-// SetNumber sets the "number" field.
-func (_u *CredentialUpdate) SetNumber(v int) *CredentialUpdate {
-	_u.mutation.ResetNumber()
-	_u.mutation.SetNumber(v)
-	return _u
-}
-
-// SetNillableNumber sets the "number" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableNumber(v *int) *CredentialUpdate {
-	if v != nil {
-		_u.SetNumber(*v)
-	}
-	return _u
-}
-
-// AddNumber adds value to the "number" field.
-func (_u *CredentialUpdate) AddNumber(v int) *CredentialUpdate {
-	_u.mutation.AddNumber(v)
-	return _u
-}
-
 // SetCompsole sets the "compsole" field.
 func (_u *CredentialUpdate) SetCompsole(v string) *CredentialUpdate {
 	_u.mutation.SetCompsole(v)
@@ -131,12 +110,6 @@ func (_u *CredentialUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Number(); ok {
-		_spec.SetField(credential.FieldNumber, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedNumber(); ok {
-		_spec.AddField(credential.FieldNumber, field.TypeInt, value)
-	}
 	if value, ok := _u.mutation.Compsole(); ok {
 		_spec.SetField(credential.FieldCompsole, field.TypeString, value)
 	}
@@ -164,27 +137,6 @@ type CredentialUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CredentialMutation
-}
-
-// SetNumber sets the "number" field.
-func (_u *CredentialUpdateOne) SetNumber(v int) *CredentialUpdateOne {
-	_u.mutation.ResetNumber()
-	_u.mutation.SetNumber(v)
-	return _u
-}
-
-// SetNillableNumber sets the "number" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableNumber(v *int) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetNumber(*v)
-	}
-	return _u
-}
-
-// AddNumber adds value to the "number" field.
-func (_u *CredentialUpdateOne) AddNumber(v int) *CredentialUpdateOne {
-	_u.mutation.AddNumber(v)
-	return _u
 }
 
 // SetCompsole sets the "compsole" field.
@@ -299,12 +251,6 @@ func (_u *CredentialUpdateOne) sqlSave(ctx context.Context) (_node *Credential, 
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := _u.mutation.Number(); ok {
-		_spec.SetField(credential.FieldNumber, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedNumber(); ok {
-		_spec.AddField(credential.FieldNumber, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Compsole(); ok {
 		_spec.SetField(credential.FieldCompsole, field.TypeString, value)

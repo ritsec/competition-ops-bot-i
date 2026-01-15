@@ -16,8 +16,6 @@ type Credential struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Team number
-	Number int `json:"number,omitempty"`
 	// Compsole password
 	Compsole string `json:"compsole,omitempty"`
 	// Scorify password
@@ -33,7 +31,7 @@ func (*Credential) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case credential.FieldID, credential.FieldNumber:
+		case credential.FieldID:
 			values[i] = new(sql.NullInt64)
 		case credential.FieldCompsole, credential.FieldScorify, credential.FieldAuthentik:
 			values[i] = new(sql.NullString)
@@ -60,12 +58,6 @@ func (_m *Credential) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case credential.FieldNumber:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field number", values[i])
-			} else if value.Valid {
-				_m.Number = int(value.Int64)
-			}
 		case credential.FieldCompsole:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field compsole", values[i])
@@ -127,9 +119,6 @@ func (_m *Credential) String() string {
 	var builder strings.Builder
 	builder.WriteString("Credential(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("number=")
-	builder.WriteString(fmt.Sprintf("%v", _m.Number))
-	builder.WriteString(", ")
 	builder.WriteString("compsole=")
 	builder.WriteString(_m.Compsole)
 	builder.WriteString(", ")

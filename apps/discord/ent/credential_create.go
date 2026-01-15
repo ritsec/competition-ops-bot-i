@@ -19,12 +19,6 @@ type CredentialCreate struct {
 	hooks    []Hook
 }
 
-// SetNumber sets the "number" field.
-func (_c *CredentialCreate) SetNumber(v int) *CredentialCreate {
-	_c.mutation.SetNumber(v)
-	return _c
-}
-
 // SetCompsole sets the "compsole" field.
 func (_c *CredentialCreate) SetCompsole(v string) *CredentialCreate {
 	_c.mutation.SetCompsole(v)
@@ -77,9 +71,6 @@ func (_c *CredentialCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CredentialCreate) check() error {
-	if _, ok := _c.mutation.Number(); !ok {
-		return &ValidationError{Name: "number", err: errors.New(`ent: missing required field "Credential.number"`)}
-	}
 	if _, ok := _c.mutation.Compsole(); !ok {
 		return &ValidationError{Name: "compsole", err: errors.New(`ent: missing required field "Credential.compsole"`)}
 	}
@@ -115,10 +106,6 @@ func (_c *CredentialCreate) createSpec() (*Credential, *sqlgraph.CreateSpec) {
 		_node = &Credential{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(credential.Table, sqlgraph.NewFieldSpec(credential.FieldID, field.TypeInt))
 	)
-	if value, ok := _c.mutation.Number(); ok {
-		_spec.SetField(credential.FieldNumber, field.TypeInt, value)
-		_node.Number = value
-	}
 	if value, ok := _c.mutation.Compsole(); ok {
 		_spec.SetField(credential.FieldCompsole, field.TypeString, value)
 		_node.Compsole = value

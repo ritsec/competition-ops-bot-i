@@ -11,8 +11,6 @@ const (
 	Label = "credential"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldNumber holds the string denoting the number field in the database.
-	FieldNumber = "number"
 	// FieldCompsole holds the string denoting the compsole field in the database.
 	FieldCompsole = "compsole"
 	// FieldScorify holds the string denoting the scorify field in the database.
@@ -26,7 +24,6 @@ const (
 // Columns holds all SQL columns for credential fields.
 var Columns = []string{
 	FieldID,
-	FieldNumber,
 	FieldCompsole,
 	FieldScorify,
 	FieldAuthentik,
@@ -59,11 +56,6 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
-}
-
-// ByNumber orders the results by the number field.
-func ByNumber(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldNumber, opts...).ToFunc()
 }
 
 // ByCompsole orders the results by the compsole field.
