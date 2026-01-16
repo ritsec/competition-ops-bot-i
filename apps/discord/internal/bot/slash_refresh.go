@@ -2,15 +2,12 @@ package bot
 
 import (
 	"log"
+	"regexp"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
-)
-
-var (
-	// TODO: Find a better way to specify this. Env variables the best quick option.
-	// For the future, COBI should handle server setup as well.
-	NUM_BLUE_TEAMS = 18
+	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
 func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -34,6 +31,10 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 							Value: "Teams",
 						},
 						{
+							Name:  "Channels",
+							Value: "Channels",
+						},
+						{
 							Name:  "All",
 							Value: "All",
 						},
@@ -44,7 +45,7 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			choice := i.ApplicationCommandData().Options[0].StringValue()
 
-			initialMessage(s, i, "Refreshing server role data...")
+			initialMessage(s, i, "Refreshing server data...")
 
 			switch choice {
 			case "Roles":
@@ -70,6 +71,11 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 					} // TODO: Update role
 				}
 				updateMessage(s, i, "Successfully refreshed server role data!")
+			case "Channels":
+				if err := b.initChannels(); err != nil {
+					log.Fatal(err)
+				}
+				updateMessage(s, i, "Successfully refreshed server channel data!")
 			case "Teams":
 				if err := b.createTeams(); err != nil {
 					log.Fatal(err)
@@ -99,6 +105,61 @@ func (b *Bot) createTeams() error {
 	_, err = b.getBlack()
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// initChannels will parse the Blue Team channels of the Guild and
+// add the channel as a relation to the corresponding team in SQL.
+func (b *Bot) initChannels() error {
+	channels, err := b.Session.GuildChannels(guildID)
+	if err != nil {
+		return err
+	}
+
+	blueRegex := regexp.MustCompile(`^team([1-9]|1[0-9]|2[01])-chat$`)
+
+	for _, channel := range channels {
+		match := blueRegex.FindStringSubmatch(channel.Name)
+
+		if match == nil {
+			continue
+		}
+
+		// Get team number
+		num, err := strconv.Atoi(match[1])
+		if err != nil {
+			return err
+		}
+
+		// Get corresponding Blue Team
+		t, err := b.Client.Team.Query().
+			Where(team.And(team.TypeEQ(team.TypeBlue), team.Number(num))).
+			Only(b.ClientCtx)
+		if err != nil {
+			log.Printf("Could not find team %d, skipping...", num)
+			continue
+		}
+
+		if t.QueryChannel() != nil {
+			continue // TODO: Update value
+		}
+
+		// Create channel entry
+		c, err := b.Client.Channel.Create().
+			SetID(channel.ID).
+			SetName(channel.Name).
+			Save(b.ClientCtx)
+		if err != nil {
+			return err
+		}
+
+		// Add channel to team
+		_, err = t.Update().AddChannel(c).Save(b.ClientCtx)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

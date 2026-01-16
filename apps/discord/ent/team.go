@@ -38,9 +38,11 @@ type TeamEdges struct {
 	Role []*Role `json:"role,omitempty"`
 	// Credential holds the value of the credential edge.
 	Credential []*Credential `json:"credential,omitempty"`
+	// Channel holds the value of the channel edge.
+	Channel []*Channel `json:"channel,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // UserOrErr returns the User value or an error if the edge
@@ -68,6 +70,15 @@ func (e TeamEdges) CredentialOrErr() ([]*Credential, error) {
 		return e.Credential, nil
 	}
 	return nil, &NotLoadedError{edge: "credential"}
+}
+
+// ChannelOrErr returns the Channel value or an error if the edge
+// was not loaded in eager-loading.
+func (e TeamEdges) ChannelOrErr() ([]*Channel, error) {
+	if e.loadedTypes[3] {
+		return e.Channel, nil
+	}
+	return nil, &NotLoadedError{edge: "channel"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -150,6 +161,11 @@ func (_m *Team) QueryRole() *RoleQuery {
 // QueryCredential queries the "credential" edge of the Team entity.
 func (_m *Team) QueryCredential() *CredentialQuery {
 	return NewTeamClient(_m.config).QueryCredential(_m)
+}
+
+// QueryChannel queries the "channel" edge of the Team entity.
+func (_m *Team) QueryChannel() *ChannelQuery {
+	return NewTeamClient(_m.config).QueryChannel(_m)
 }
 
 // Update returns a builder for updating this Team.

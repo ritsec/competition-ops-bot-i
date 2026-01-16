@@ -26,6 +26,10 @@ var (
 
 	// SlashCommandHandlers is a map of all slash command handlers
 	slashCommandHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) = make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate))
+
+	// TODO: Find a better way to specify this. Env variables the best quick option.
+	// For the future, COBI should handle server setup as well.
+	NUM_BLUE_TEAMS = 18
 )
 
 // Start will create and set the global session for the bot class

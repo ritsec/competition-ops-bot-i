@@ -25,32 +25,44 @@ func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 				// TODO: Add option to query credentials
 				{
 					Type:        discordgo.ApplicationCommandOptionAttachment,
-					Name:        "attachment",
-					Description: "Attach CSV",
-					Required:    true,
+					Name:        "process",
+					Description: "Process credentials CSV.",
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "send",
+					Description: "Send credentials to team channels.",
 				},
 			},
 		},
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			// Get file URL
-			fileID := i.ApplicationCommandData().Options[0].Value.(string)
-			fileURL := i.ApplicationCommandData().Resolved.Attachments[fileID].URL
-			log.Printf("received %s\n", fileURL)
+			choice := i.ApplicationCommandData().Options[0].Name
+			log.Println(choice)
 
-			// Populate array of entries from CSV
-			initialMessage(s, i, "Downloading and parsing file...")
+			switch choice {
+			case "process":
+				// Get file URL
+				fileID := i.ApplicationCommandData().Options[0].Value.(string)
+				fileURL := i.ApplicationCommandData().Resolved.Attachments[fileID].URL
+				log.Printf("received %s\n", fileURL)
 
-			entries, err := utils.HandleCSV[Creds](fileURL)
-			if err != nil {
-				log.Fatal(err)
+				// Populate array of entries from CSV
+				initialMessage(s, i, "Downloading and parsing file...")
+
+				entries, err := utils.HandleCSV[Creds](fileURL)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				updateMessage(s, i, "Adding credentials to databases...")
+				if err := b.handleCreds(entries); err != nil {
+					log.Fatal(err)
+				}
+
+				updateMessage(s, i, "Successfully added team data!")
+			case "send":
+
 			}
-
-			updateMessage(s, i, "Adding credentials to databases...")
-			if err := b.handleCreds(entries); err != nil {
-				log.Fatal(err)
-			}
-
-			updateMessage(s, i, "Successfully added team data!")
 		}
 }
 

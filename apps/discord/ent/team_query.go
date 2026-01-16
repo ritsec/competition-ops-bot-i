@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/ritsec/competition-ops-bot-i/ent/channel"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
@@ -29,6 +30,7 @@ type TeamQuery struct {
 	withUser       *UserQuery
 	withRole       *RoleQuery
 	withCredential *CredentialQuery
+	withChannel    *ChannelQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (_q *TeamQuery) QueryCredential() *CredentialQuery {
 			sqlgraph.From(team.Table, team.FieldID, selector),
 			sqlgraph.To(credential.Table, credential.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, team.CredentialTable, team.CredentialColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryChannel chains the current query on the "channel" edge.
+func (_q *TeamQuery) QueryChannel() *ChannelQuery {
+	query := (&ChannelClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(team.Table, team.FieldID, selector),
+			sqlgraph.To(channel.Table, channel.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, team.ChannelTable, team.ChannelColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -326,6 +350,7 @@ func (_q *TeamQuery) Clone() *TeamQuery {
 		withUser:       _q.withUser.Clone(),
 		withRole:       _q.withRole.Clone(),
 		withCredential: _q.withCredential.Clone(),
+		withChannel:    _q.withChannel.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -362,6 +387,17 @@ func (_q *TeamQuery) WithCredential(opts ...func(*CredentialQuery)) *TeamQuery {
 		opt(query)
 	}
 	_q.withCredential = query
+	return _q
+}
+
+// WithChannel tells the query-builder to eager-load the nodes that are connected to
+// the "channel" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *TeamQuery) WithChannel(opts ...func(*ChannelQuery)) *TeamQuery {
+	query := (&ChannelClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withChannel = query
 	return _q
 }
 
@@ -443,10 +479,11 @@ func (_q *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 	var (
 		nodes       = []*Team{}
 		_spec       = _q.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			_q.withUser != nil,
 			_q.withRole != nil,
 			_q.withCredential != nil,
+			_q.withChannel != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -485,6 +522,13 @@ func (_q *TeamQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Team, e
 		if err := _q.loadCredential(ctx, query, nodes,
 			func(n *Team) { n.Edges.Credential = []*Credential{} },
 			func(n *Team, e *Credential) { n.Edges.Credential = append(n.Edges.Credential, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withChannel; query != nil {
+		if err := _q.loadChannel(ctx, query, nodes,
+			func(n *Team) { n.Edges.Channel = []*Channel{} },
+			func(n *Team, e *Channel) { n.Edges.Channel = append(n.Edges.Channel, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -609,6 +653,37 @@ func (_q *TeamQuery) loadCredential(ctx context.Context, query *CredentialQuery,
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "team_credential" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *TeamQuery) loadChannel(ctx context.Context, query *ChannelQuery, nodes []*Team, init func(*Team), assign func(*Team, *Channel)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*Team)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Channel(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(team.ChannelColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.team_channel
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "team_channel" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "team_channel" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

@@ -8,6 +8,26 @@ import (
 )
 
 var (
+	// ChannelsColumns holds the columns for the "channels" table.
+	ChannelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "team_channel", Type: field.TypeInt, Nullable: true},
+	}
+	// ChannelsTable holds the schema information for the "channels" table.
+	ChannelsTable = &schema.Table{
+		Name:       "channels",
+		Columns:    ChannelsColumns,
+		PrimaryKey: []*schema.Column{ChannelsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "channels_teams_channel",
+				Columns:    []*schema.Column{ChannelsColumns[2]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CredentialsColumns holds the columns for the "credentials" table.
 	CredentialsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -140,6 +160,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ChannelsTable,
 		CredentialsTable,
 		KeysTable,
 		RolesTable,
@@ -151,6 +172,7 @@ var (
 )
 
 func init() {
+	ChannelsTable.ForeignKeys[0].RefTable = TeamsTable
 	CredentialsTable.ForeignKeys[0].RefTable = TeamsTable
 	UsersTable.ForeignKeys[0].RefTable = TeamsTable
 	TeamRoleTable.ForeignKeys[0].RefTable = TeamsTable

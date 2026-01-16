@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Channel is the predicate function for channel builders.
+type Channel func(*sql.Selector)
+
 // Credential is the predicate function for credential builders.
 type Credential func(*sql.Selector)
 

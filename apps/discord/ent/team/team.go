@@ -28,6 +28,8 @@ const (
 	EdgeRole = "role"
 	// EdgeCredential holds the string denoting the credential edge name in mutations.
 	EdgeCredential = "credential"
+	// EdgeChannel holds the string denoting the channel edge name in mutations.
+	EdgeChannel = "channel"
 	// Table holds the table name of the team in the database.
 	Table = "teams"
 	// UserTable is the table that holds the user relation/edge.
@@ -49,6 +51,13 @@ const (
 	CredentialInverseTable = "credentials"
 	// CredentialColumn is the table column denoting the credential relation/edge.
 	CredentialColumn = "team_credential"
+	// ChannelTable is the table that holds the channel relation/edge.
+	ChannelTable = "channels"
+	// ChannelInverseTable is the table name for the Channel entity.
+	// It exists in this package in order to avoid circular dependency with the "channel" package.
+	ChannelInverseTable = "channels"
+	// ChannelColumn is the table column denoting the channel relation/edge.
+	ChannelColumn = "team_channel"
 )
 
 // Columns holds all SQL columns for team fields.
@@ -208,6 +217,20 @@ func ByCredential(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newCredentialStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByChannelCount orders the results by channel count.
+func ByChannelCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newChannelStep(), opts...)
+	}
+}
+
+// ByChannel orders the results by channel terms.
+func ByChannel(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newChannelStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newUserStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -227,5 +250,12 @@ func newCredentialStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CredentialInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, CredentialTable, CredentialColumn),
+	)
+}
+func newChannelStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ChannelInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ChannelTable, ChannelColumn),
 	)
 }

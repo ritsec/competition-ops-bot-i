@@ -12,6 +12,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Channel is the client for interacting with the Channel builders.
+	Channel *ChannelClient
 	// Credential is the client for interacting with the Credential builders.
 	Credential *CredentialClient
 	// Key is the client for interacting with the Key builders.
@@ -153,6 +155,7 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Channel = NewChannelClient(tx.config)
 	tx.Credential = NewCredentialClient(tx.config)
 	tx.Key = NewKeyClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
@@ -167,7 +170,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Credential.QueryXXX(), the query will be executed
+// applies a query, for example: Channel.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

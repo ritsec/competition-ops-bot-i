@@ -297,6 +297,29 @@ func HasCredentialWith(preds ...predicate.Credential) predicate.Team {
 	})
 }
 
+// HasChannel applies the HasEdge predicate on the "channel" edge.
+func HasChannel() predicate.Team {
+	return predicate.Team(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ChannelTable, ChannelColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasChannelWith applies the HasEdge predicate on the "channel" edge with a given conditions (other predicates).
+func HasChannelWith(preds ...predicate.Channel) predicate.Team {
+	return predicate.Team(func(s *sql.Selector) {
+		step := newChannelStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Team) predicate.Team {
 	return predicate.Team(sql.AndPredicates(predicates...))

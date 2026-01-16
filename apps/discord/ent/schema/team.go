@@ -52,5 +52,6 @@ func (Team) Edges() []ent.Edge {
 		edge.To("user", User.Type),
 		edge.To("role", Role.Type),
 		edge.To("credential", Credential.Type),
+		edge.To("channel", Channel.Type),
 	}
 }
