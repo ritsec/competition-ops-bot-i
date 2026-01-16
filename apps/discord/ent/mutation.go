@@ -378,6 +378,8 @@ type CredentialMutation struct {
 	scorify       *string
 	authentik     *string
 	clearedFields map[string]struct{}
+	team          *int
+	clearedteam   bool
 	done          bool
 	oldValue      func(context.Context) (*Credential, error)
 	predicates    []predicate.Credential
@@ -589,6 +591,45 @@ func (m *CredentialMutation) ResetAuthentik() {
 	m.authentik = nil
 }
 
+// SetTeamID sets the "team" edge to the Team entity by id.
+func (m *CredentialMutation) SetTeamID(id int) {
+	m.team = &id
+}
+
+// ClearTeam clears the "team" edge to the Team entity.
+func (m *CredentialMutation) ClearTeam() {
+	m.clearedteam = true
+}
+
+// TeamCleared reports if the "team" edge to the Team entity was cleared.
+func (m *CredentialMutation) TeamCleared() bool {
+	return m.clearedteam
+}
+
+// TeamID returns the "team" edge ID in the mutation.
+func (m *CredentialMutation) TeamID() (id int, exists bool) {
+	if m.team != nil {
+		return *m.team, true
+	}
+	return
+}
+
+// TeamIDs returns the "team" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TeamID instead. It exists only for internal usage by the builders.
+func (m *CredentialMutation) TeamIDs() (ids []int) {
+	if id := m.team; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTeam resets all changes to the "team" edge.
+func (m *CredentialMutation) ResetTeam() {
+	m.team = nil
+	m.clearedteam = false
+}
+
 // Where appends a list predicates to the CredentialMutation builder.
 func (m *CredentialMutation) Where(ps ...predicate.Credential) {
 	m.predicates = append(m.predicates, ps...)
@@ -756,19 +797,28 @@ func (m *CredentialMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *CredentialMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.team != nil {
+		edges = append(edges, credential.EdgeTeam)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *CredentialMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case credential.EdgeTeam:
+		if id := m.team; id != nil {
+			return []ent.Value{*id}
+		}
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *CredentialMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -780,25 +830,42 @@ func (m *CredentialMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *CredentialMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedteam {
+		edges = append(edges, credential.EdgeTeam)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *CredentialMutation) EdgeCleared(name string) bool {
+	switch name {
+	case credential.EdgeTeam:
+		return m.clearedteam
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *CredentialMutation) ClearEdge(name string) error {
+	switch name {
+	case credential.EdgeTeam:
+		m.ClearTeam()
+		return nil
+	}
 	return fmt.Errorf("unknown Credential unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *CredentialMutation) ResetEdge(name string) error {
+	switch name {
+	case credential.EdgeTeam:
+		m.ResetTeam()
+		return nil
+	}
 	return fmt.Errorf("unknown Credential edge %s", name)
 }
 

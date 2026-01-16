@@ -32,6 +32,12 @@ func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "send",
 					Description: "Send credentials to team channels.",
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "All",
+							Value: "All",
+						},
+					},
 				},
 			},
 		},
@@ -61,6 +67,10 @@ func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 
 				updateMessage(s, i, "Successfully added team data!")
 			case "send":
+				if err := b.sendCreds(); err != nil {
+					log.Fatal(err)
+				}
+				updateMessage(s, i, "Successfully sent messages")
 
 			}
 		}
@@ -108,5 +118,39 @@ func (b *Bot) handleCreds(entries []*Creds) error {
 			return err
 		}
 	}
+	return nil
+}
+
+func (b *Bot) sendCreds() error {
+	teams, err := b.Client.Team.Query().
+		Where(team.TypeEQ(team.TypeBlue)).
+		All(b.ClientCtx)
+	if err != nil {
+		return err
+	}
+
+	for _, team := range teams {
+		// Get team's credential
+		creds, err := team.QueryCredential().Only(b.ClientCtx)
+		if err != nil {
+			log.Printf("Could not get credentials for Blue Team %d", team.Number)
+			continue
+		}
+
+		// Create message embed
+		embed := utils.MessageCreds(team.Number, creds)
+
+		// Get team's channel
+		channel, err := team.QueryChannel().Only(b.ClientCtx)
+		if err != nil {
+			log.Printf("Could not get channel for Blue Team %d", team.Number)
+			continue
+		}
+
+		// Send embed to channel ID
+		_, err = b.Session.ChannelMessageSendEmbed(channel.ID, embed)
+
+	}
+
 	return nil
 }

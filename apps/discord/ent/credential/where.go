@@ -4,6 +4,7 @@ package credential
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 )
 
@@ -260,6 +261,29 @@ func AuthentikEqualFold(v string) predicate.Credential {
 // AuthentikContainsFold applies the ContainsFold predicate on the "authentik" field.
 func AuthentikContainsFold(v string) predicate.Credential {
 	return predicate.Credential(sql.FieldContainsFold(FieldAuthentik, v))
+}
+
+// HasTeam applies the HasEdge predicate on the "team" edge.
+func HasTeam() predicate.Credential {
+	return predicate.Credential(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, TeamTable, TeamColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTeamWith applies the HasEdge predicate on the "team" edge with a given conditions (other predicates).
+func HasTeamWith(preds ...predicate.Team) predicate.Credential {
+	return predicate.Credential(func(s *sql.Selector) {
+		step := newTeamStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

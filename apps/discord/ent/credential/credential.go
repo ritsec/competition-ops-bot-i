@@ -4,6 +4,7 @@ package credential
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -17,8 +18,17 @@ const (
 	FieldScorify = "scorify"
 	// FieldAuthentik holds the string denoting the authentik field in the database.
 	FieldAuthentik = "authentik"
+	// EdgeTeam holds the string denoting the team edge name in mutations.
+	EdgeTeam = "team"
 	// Table holds the table name of the credential in the database.
 	Table = "credentials"
+	// TeamTable is the table that holds the team relation/edge.
+	TeamTable = "credentials"
+	// TeamInverseTable is the table name for the Team entity.
+	// It exists in this package in order to avoid circular dependency with the "team" package.
+	TeamInverseTable = "teams"
+	// TeamColumn is the table column denoting the team relation/edge.
+	TeamColumn = "team_credential"
 )
 
 // Columns holds all SQL columns for credential fields.
@@ -71,4 +81,18 @@ func ByScorify(opts ...sql.OrderTermOption) OrderOption {
 // ByAuthentik orders the results by the authentik field.
 func ByAuthentik(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAuthentik, opts...).ToFunc()
+}
+
+// ByTeamField orders the results by team field.
+func ByTeamField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTeamStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newTeamStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TeamInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, TeamTable, TeamColumn),
+	)
 }

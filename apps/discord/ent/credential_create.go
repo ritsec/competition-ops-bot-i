@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
+	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
 // CredentialCreate is the builder for creating a Credential entity.
@@ -35,6 +36,25 @@ func (_c *CredentialCreate) SetScorify(v string) *CredentialCreate {
 func (_c *CredentialCreate) SetAuthentik(v string) *CredentialCreate {
 	_c.mutation.SetAuthentik(v)
 	return _c
+}
+
+// SetTeamID sets the "team" edge to the Team entity by ID.
+func (_c *CredentialCreate) SetTeamID(id int) *CredentialCreate {
+	_c.mutation.SetTeamID(id)
+	return _c
+}
+
+// SetNillableTeamID sets the "team" edge to the Team entity by ID if the given value is not nil.
+func (_c *CredentialCreate) SetNillableTeamID(id *int) *CredentialCreate {
+	if id != nil {
+		_c = _c.SetTeamID(*id)
+	}
+	return _c
+}
+
+// SetTeam sets the "team" edge to the Team entity.
+func (_c *CredentialCreate) SetTeam(v *Team) *CredentialCreate {
+	return _c.SetTeamID(v.ID)
 }
 
 // Mutation returns the CredentialMutation object of the builder.
@@ -117,6 +137,23 @@ func (_c *CredentialCreate) createSpec() (*Credential, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Authentik(); ok {
 		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
 		_node.Authentik = value
+	}
+	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   credential.TeamTable,
+			Columns: []string{credential.TeamColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(team.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.team_credential = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

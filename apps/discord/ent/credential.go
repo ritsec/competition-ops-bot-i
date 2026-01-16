@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
+	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
 // Credential is the model entity for the Credential schema.
@@ -21,9 +22,32 @@ type Credential struct {
 	// Scorify password
 	Scorify string `json:"scorify,omitempty"`
 	// Authentik password
-	Authentik       string `json:"authentik,omitempty"`
+	Authentik string `json:"authentik,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CredentialQuery when eager-loading is set.
+	Edges           CredentialEdges `json:"edges"`
 	team_credential *int
 	selectValues    sql.SelectValues
+}
+
+// CredentialEdges holds the relations/edges for other nodes in the graph.
+type CredentialEdges struct {
+	// Team holds the value of the team edge.
+	Team *Team `json:"team,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TeamOrErr returns the Team value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CredentialEdges) TeamOrErr() (*Team, error) {
+	if e.Team != nil {
+		return e.Team, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: team.Label}
+	}
+	return nil, &NotLoadedError{edge: "team"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -94,6 +118,11 @@ func (_m *Credential) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Credential) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
+}
+
+// QueryTeam queries the "team" edge of the Credential entity.
+func (_m *Credential) QueryTeam() *TeamQuery {
+	return NewCredentialClient(_m.config).QueryTeam(_m)
 }
 
 // Update returns a builder for updating this Credential.

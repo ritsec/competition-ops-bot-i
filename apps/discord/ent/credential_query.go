@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
+	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
 // CredentialQuery is the builder for querying Credential entities.
@@ -22,6 +23,7 @@ type CredentialQuery struct {
 	order      []credential.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Credential
+	withTeam   *TeamQuery
 	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -57,6 +59,28 @@ func (_q *CredentialQuery) Unique(unique bool) *CredentialQuery {
 func (_q *CredentialQuery) Order(o ...credential.OrderOption) *CredentialQuery {
 	_q.order = append(_q.order, o...)
 	return _q
+}
+
+// QueryTeam chains the current query on the "team" edge.
+func (_q *CredentialQuery) QueryTeam() *TeamQuery {
+	query := (&TeamClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(credential.Table, credential.FieldID, selector),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, credential.TeamTable, credential.TeamColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Credential entity from the query.
@@ -251,10 +275,22 @@ func (_q *CredentialQuery) Clone() *CredentialQuery {
 		order:      append([]credential.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.Credential{}, _q.predicates...),
+		withTeam:   _q.withTeam.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
+}
+
+// WithTeam tells the query-builder to eager-load the nodes that are connected to
+// the "team" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *CredentialQuery) WithTeam(opts ...func(*TeamQuery)) *CredentialQuery {
+	query := (&TeamClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withTeam = query
+	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -333,10 +369,16 @@ func (_q *CredentialQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *CredentialQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Credential, error) {
 	var (
-		nodes   = []*Credential{}
-		withFKs = _q.withFKs
-		_spec   = _q.querySpec()
+		nodes       = []*Credential{}
+		withFKs     = _q.withFKs
+		_spec       = _q.querySpec()
+		loadedTypes = [1]bool{
+			_q.withTeam != nil,
+		}
 	)
+	if _q.withTeam != nil {
+		withFKs = true
+	}
 	if withFKs {
 		_spec.Node.Columns = append(_spec.Node.Columns, credential.ForeignKeys...)
 	}
@@ -346,6 +388,7 @@ func (_q *CredentialQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*C
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Credential{config: _q.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -357,7 +400,46 @@ func (_q *CredentialQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*C
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := _q.withTeam; query != nil {
+		if err := _q.loadTeam(ctx, query, nodes, nil,
+			func(n *Credential, e *Team) { n.Edges.Team = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (_q *CredentialQuery) loadTeam(ctx context.Context, query *TeamQuery, nodes []*Credential, init func(*Credential), assign func(*Credential, *Team)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Credential)
+	for i := range nodes {
+		if nodes[i].team_credential == nil {
+			continue
+		}
+		fk := *nodes[i].team_credential
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(team.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "team_credential" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (_q *CredentialQuery) sqlCount(ctx context.Context) (int, error) {

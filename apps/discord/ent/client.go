@@ -486,6 +486,22 @@ func (c *CredentialClient) GetX(ctx context.Context, id int) *Credential {
 	return obj
 }
 
+// QueryTeam queries the team edge of a Credential.
+func (c *CredentialClient) QueryTeam(_m *Credential) *TeamQuery {
+	query := (&TeamClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(credential.Table, credential.FieldID, id),
+			sqlgraph.To(team.Table, team.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, credential.TeamTable, credential.TeamColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *CredentialClient) Hooks() []Hook {
 	return c.hooks.Credential
