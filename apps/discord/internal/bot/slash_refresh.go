@@ -142,12 +142,13 @@ func (b *Bot) initChannels() error {
 			continue
 		}
 
-		if t.QueryChannel() != nil {
+		c, err := t.QueryChannel().Only(b.ClientCtx)
+		if err == nil { // If channel entry already exists
 			continue // TODO: Update value
 		}
 
 		// Create channel entry
-		c, err := b.Client.Channel.Create().
+		c, err = b.Client.Channel.Create().
 			SetID(channel.ID).
 			SetName(channel.Name).
 			Save(b.ClientCtx)
