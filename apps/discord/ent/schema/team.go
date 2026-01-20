@@ -40,6 +40,8 @@ func (Team) Fields() []ent.Field {
 				"store",
 				"ctf",
 				"koth",
+				"injects",
+				"game",
 			).
 			Comment("Subteam of team type").
 			Optional(),

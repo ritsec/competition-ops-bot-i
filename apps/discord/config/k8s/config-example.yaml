@@ -3,8 +3,8 @@ kind: ConfigMap
 metadata:
   name: discord-environment
 data:
-  guild: "<GUILD_ID>"
-  app: "<APP_ID>"
+  DISCORD_GUILD: "<GUILD_ID>"
+  DISCORD_APP: "<APP_ID>"
 
 ---
 
@@ -13,7 +13,7 @@ kind: ConfigMap
 metadata:
   name: mysql-environment
 data:
-  user: "root"
-  host: "mysql"
-  port: 3306
-  db: "<DATABASE_NAME>"
+  DB_USER: "cobi"
+  DB_HOST: "mysql"
+  DB_PORT: "3306"
+  DB_DATABASE: "cobi"

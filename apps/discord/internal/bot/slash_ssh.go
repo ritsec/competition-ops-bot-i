@@ -41,8 +41,12 @@ func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i
 			uid := i.Member.User.ID
 			u, err := b.getUserFromUID(uid)
 			if err != nil {
-				updateMessage(s, i, "Hmmm, I can't find your user data. Please reach out to the server admins.")
-				return
+				updateMessage(s, i, "Hmmm, I can't find your user data. Trying to find you based on your username...")
+				u, err = b.getUserFromUsername(i.Member.User.Username)
+				if err != nil {
+					updateMessage(s, i, "Couldn't find your user entry. Please reach out to a moderator.")
+					return
+				}
 			}
 
 			// Add key to user's 'key' field
