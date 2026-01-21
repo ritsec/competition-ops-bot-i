@@ -6,9 +6,7 @@ metadata:
 spec:
   capacity:
     storage: 16Gi
-  nfs:
-    server: api-int.okd4.ritsec.cloud
-    path: /var/nfs/cobi
+  storageClassName: standard-csi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain 
@@ -21,6 +19,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: standard-csi
   resources:
     requests:
       storage: 16Gi
