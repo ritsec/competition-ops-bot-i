@@ -1,29 +1,24 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mysql-pv-volume
+  name: mysql-pv
   namespace: competition-ops-bot-i
-  labels:
-    type: local
 spec:
-  storageClassName: manual
   capacity:
-    storage: 8Gi
+    storage: 16Gi
   accessModes:
     - ReadWriteOnce
-  hostPath:
-    path: "/var/local/"
+  persistentVolumeReclaimPolicy: Retain 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mysql-pv-claim
+  name: mysql-pvc
   namespace: competition-ops-bot-i
 spec:
-  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 8Gi
+      storage: 16Gi
 
