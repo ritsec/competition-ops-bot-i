@@ -2,6 +2,7 @@ package bot
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"golang.org/x/crypto/ssh"
 )
 
 func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -11,22 +12,33 @@ func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i
 			DefaultMemberPermissions: &BlackTeam,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Name:        "add",
+					Name:        "key",
 					Description: "Add SSH key",
 					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionSubCommand,
-							Name:        "key",
+							Name:        "add",
 							Description: "SSH Key input",
 							Options: []*discordgo.ApplicationCommandOption{
 								{
 									Type:        discordgo.ApplicationCommandOptionString,
 									Name:        "value",
-									Description: "SSH Key",
+									Description: "SSH public key",
+									Required:    true,
+								},
+								{
+									Type:        discordgo.ApplicationCommandOptionString,
+									Name:        "name",
+									Description: "SSH key name",
 									Required:    true,
 								},
 							},
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionSubCommand,
+							Name:        "remove",
+							Description: "Remove SSH key entry",
 						},
 					},
 				},
@@ -35,8 +47,14 @@ func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			// Get public key from SSH key add subcommand
 			key := i.ApplicationCommandData().Options[0].Options[0].Options[0].StringValue()
-			initialMessage(s, i, "Adding key to database...")
 
+			initialMessage(s, i, "Checking key...")
+
+			_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+			if err != nil {
+				updateMessage(s, i, "That doesn't look like a public key. Try again.")
+				return
+			}
 			// Get Ent user object
 			uid := i.Member.User.ID
 			u, err := b.getUserFromUID(uid)

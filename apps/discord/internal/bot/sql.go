@@ -205,12 +205,18 @@ func (b *Bot) addKey(u *ent.User, key string) error {
 			Create().
 			SetKeys([]string{key}).
 			Save(b.ClientCtx)
-	}
 
-	// Add the key to the user's edge
-	_, err = u.Update().AddKey(k).Save(b.ClientCtx)
-	if err != nil {
-		return err
+		// Add the key to the user's edge
+		_, err = u.Update().AddKey(k).Save(b.ClientCtx)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If it exists, append the key to the list
+		_, err = k.Update().AppendKeys([]string{key}).Save(b.ClientCtx)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
