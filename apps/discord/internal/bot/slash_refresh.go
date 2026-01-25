@@ -91,20 +91,20 @@ func (b *Bot) createTeams() error {
 		// Create/check for team
 		_, err := b.getBlue(i)
 		if err != nil {
-			return err
+			log.Println(err)
 		}
 	}
 
 	// Red Team
 	_, err := b.getRed()
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 
 	// Black Team
 	_, err = b.getBlack()
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 
 	return nil
