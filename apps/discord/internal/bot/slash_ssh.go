@@ -23,14 +23,8 @@ func (b *Bot) SSH() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i
 							Options: []*discordgo.ApplicationCommandOption{
 								{
 									Type:        discordgo.ApplicationCommandOptionString,
-									Name:        "value",
+									Name:        "key",
 									Description: "SSH public key",
-									Required:    true,
-								},
-								{
-									Type:        discordgo.ApplicationCommandOptionString,
-									Name:        "name",
-									Description: "SSH key name",
 									Required:    true,
 								},
 							},
