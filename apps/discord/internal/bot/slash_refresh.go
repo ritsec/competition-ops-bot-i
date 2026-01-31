@@ -87,7 +87,7 @@ func (b *Bot) Refresh() (*discordgo.ApplicationCommand, func(s *discordgo.Sessio
 
 func (b *Bot) createTeams() error {
 	// Blue Teams
-	for i := 1; i <= NUM_BLUE_TEAMS; i++ {
+	for i := 1; i <= numBlueTeams; i++ {
 		// Create/check for team
 		_, err := b.getBlue(i)
 		if err != nil {
