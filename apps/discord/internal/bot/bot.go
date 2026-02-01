@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent"
@@ -17,9 +18,10 @@ type Bot struct {
 }
 
 var (
-	token   = os.Getenv("DISCORD_TOKEN")
-	guildID = os.Getenv("DISCORD_GUILD")
-	appID   = os.Getenv("DISCORD_APP")
+	token           = os.Getenv("DISCORD_TOKEN")
+	guildID         = os.Getenv("DISCORD_GUILD")
+	appID           = os.Getenv("DISCORD_APP")
+	numBlueTeams, _ = strconv.Atoi(os.Getenv("BLUE_TEAMS"))
 
 	// SlashCommands is a map of all slash commands
 	slashCommands map[string]func() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) = make(map[string]func() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)))
@@ -29,7 +31,6 @@ var (
 
 	// TODO: Find a better way to specify this. Env variables the best quick option.
 	// For the future, COBI should handle server setup as well.
-	NUM_BLUE_TEAMS = 18
 )
 
 // Start will create and set the global session for the bot class
@@ -49,6 +50,7 @@ func (b *Bot) Start() {
 	slashCommands["refresh"] = b.Refresh
 	slashCommands["query"] = b.Query
 	slashCommands["creds"] = b.Creds
+	slashCommands["server"] = b.Server
 
 	// Register slash commands
 	b.registerSlashCommands()

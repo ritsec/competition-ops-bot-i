@@ -5,6 +5,7 @@ metadata:
 data:
   DISCORD_GUILD: "<GUILD_ID>"
   DISCORD_APP: "<APP_ID>"
+  BLUE_TEAMS: "<NUM_BLUE_TEAMS>"
 
 ---
 
