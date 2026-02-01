@@ -221,3 +221,14 @@ func (b *Bot) addKey(u *ent.User, key string) error {
 
 	return nil
 }
+
+func (b *Bot) getRole(name string) string {
+	role, err := b.Client.Role.Query().
+		Where(role.Name(name)).
+		Only(b.ClientCtx)
+	if err != nil {
+		return ""
+	}
+
+	return role.ID
+}

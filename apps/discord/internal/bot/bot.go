@@ -50,7 +50,7 @@ func (b *Bot) Start() {
 	slashCommands["refresh"] = b.Refresh
 	slashCommands["query"] = b.Query
 	slashCommands["creds"] = b.Creds
-	slashCommands["build"] = b.Build
+	slashCommands["server"] = b.Server
 
 	// Register slash commands
 	b.registerSlashCommands()
