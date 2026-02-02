@@ -100,12 +100,12 @@ func (b *Bot) getBlue(i int) (*ent.Team, error) {
 			return nil, err
 		}
 
-		// Add default and individual team roles
-		teamRole := fmt.Sprintf("Blue Team %d", i)
+	}
+	// Add default and individual team roles
+	teamRole := fmt.Sprintf("Blue Team %d", i)
 
-		if err := b.addRoles(t, defaultRole["blue"], teamRole); err != nil {
-			return nil, err
-		}
+	if err := b.addRoles(t, defaultRole["blue"], teamRole); err != nil {
+		return nil, err
 	}
 
 	return t, err
