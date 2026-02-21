@@ -34,6 +34,12 @@ var (
 		{Name: "compsole", Type: field.TypeString},
 		{Name: "scorify", Type: field.TypeString},
 		{Name: "authentik", Type: field.TypeString},
+		{Name: "store", Type: field.TypeString},
+		{Name: "ctfd", Type: field.TypeString},
+		{Name: "wazuh", Type: field.TypeString},
+		{Name: "pfsense", Type: field.TypeString},
+		{Name: "default", Type: field.TypeString},
+		{Name: "kali", Type: field.TypeString},
 		{Name: "team_credential", Type: field.TypeInt, Nullable: true},
 	}
 	// CredentialsTable holds the schema information for the "credentials" table.
@@ -44,7 +50,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "credentials_teams_credential",
-				Columns:    []*schema.Column{CredentialsColumns[4]},
+				Columns:    []*schema.Column{CredentialsColumns[10]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -78,7 +84,7 @@ var (
 		{Name: "lead", Type: field.TypeString, Default: "none"},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"blue", "red", "black", "white", "purple"}, Default: "black"},
 		{Name: "number", Type: field.TypeInt, Nullable: true},
-		{Name: "subteam", Type: field.TypeEnum, Nullable: true, Enums: []string{"infra", "linux", "windows", "scoring", "logging", "store", "ctf", "koth"}},
+		{Name: "subteam", Type: field.TypeEnum, Nullable: true, Enums: []string{"infra", "linux", "windows", "scoring", "logging", "store", "ctf", "koth", "injects", "game"}},
 	}
 	// TeamsTable holds the schema information for the "teams" table.
 	TeamsTable = &schema.Table{

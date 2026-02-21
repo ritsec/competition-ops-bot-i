@@ -18,6 +18,18 @@ const (
 	FieldScorify = "scorify"
 	// FieldAuthentik holds the string denoting the authentik field in the database.
 	FieldAuthentik = "authentik"
+	// FieldStore holds the string denoting the store field in the database.
+	FieldStore = "store"
+	// FieldCtfd holds the string denoting the ctfd field in the database.
+	FieldCtfd = "ctfd"
+	// FieldWazuh holds the string denoting the wazuh field in the database.
+	FieldWazuh = "wazuh"
+	// FieldPfsense holds the string denoting the pfsense field in the database.
+	FieldPfsense = "pfsense"
+	// FieldDefault holds the string denoting the default field in the database.
+	FieldDefault = "default"
+	// FieldKali holds the string denoting the kali field in the database.
+	FieldKali = "kali"
 	// EdgeTeam holds the string denoting the team edge name in mutations.
 	EdgeTeam = "team"
 	// Table holds the table name of the credential in the database.
@@ -37,6 +49,12 @@ var Columns = []string{
 	FieldCompsole,
 	FieldScorify,
 	FieldAuthentik,
+	FieldStore,
+	FieldCtfd,
+	FieldWazuh,
+	FieldPfsense,
+	FieldDefault,
+	FieldKali,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "credentials"
@@ -81,6 +99,36 @@ func ByScorify(opts ...sql.OrderTermOption) OrderOption {
 // ByAuthentik orders the results by the authentik field.
 func ByAuthentik(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAuthentik, opts...).ToFunc()
+}
+
+// ByStore orders the results by the store field.
+func ByStore(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStore, opts...).ToFunc()
+}
+
+// ByCtfd orders the results by the ctfd field.
+func ByCtfd(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCtfd, opts...).ToFunc()
+}
+
+// ByWazuh orders the results by the wazuh field.
+func ByWazuh(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWazuh, opts...).ToFunc()
+}
+
+// ByPfsense orders the results by the pfsense field.
+func ByPfsense(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPfsense, opts...).ToFunc()
+}
+
+// ByDefault orders the results by the default field.
+func ByDefault(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDefault, opts...).ToFunc()
+}
+
+// ByKali orders the results by the kali field.
+func ByKali(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKali, opts...).ToFunc()
 }
 
 // ByTeamField orders the results by team field.

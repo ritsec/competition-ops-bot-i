@@ -70,6 +70,90 @@ func (_u *CredentialUpdate) SetNillableAuthentik(v *string) *CredentialUpdate {
 	return _u
 }
 
+// SetStore sets the "store" field.
+func (_u *CredentialUpdate) SetStore(v string) *CredentialUpdate {
+	_u.mutation.SetStore(v)
+	return _u
+}
+
+// SetNillableStore sets the "store" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillableStore(v *string) *CredentialUpdate {
+	if v != nil {
+		_u.SetStore(*v)
+	}
+	return _u
+}
+
+// SetCtfd sets the "ctfd" field.
+func (_u *CredentialUpdate) SetCtfd(v string) *CredentialUpdate {
+	_u.mutation.SetCtfd(v)
+	return _u
+}
+
+// SetNillableCtfd sets the "ctfd" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillableCtfd(v *string) *CredentialUpdate {
+	if v != nil {
+		_u.SetCtfd(*v)
+	}
+	return _u
+}
+
+// SetWazuh sets the "wazuh" field.
+func (_u *CredentialUpdate) SetWazuh(v string) *CredentialUpdate {
+	_u.mutation.SetWazuh(v)
+	return _u
+}
+
+// SetNillableWazuh sets the "wazuh" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillableWazuh(v *string) *CredentialUpdate {
+	if v != nil {
+		_u.SetWazuh(*v)
+	}
+	return _u
+}
+
+// SetPfsense sets the "pfsense" field.
+func (_u *CredentialUpdate) SetPfsense(v string) *CredentialUpdate {
+	_u.mutation.SetPfsense(v)
+	return _u
+}
+
+// SetNillablePfsense sets the "pfsense" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillablePfsense(v *string) *CredentialUpdate {
+	if v != nil {
+		_u.SetPfsense(*v)
+	}
+	return _u
+}
+
+// SetDefault sets the "default" field.
+func (_u *CredentialUpdate) SetDefault(v string) *CredentialUpdate {
+	_u.mutation.SetDefault(v)
+	return _u
+}
+
+// SetNillableDefault sets the "default" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillableDefault(v *string) *CredentialUpdate {
+	if v != nil {
+		_u.SetDefault(*v)
+	}
+	return _u
+}
+
+// SetKali sets the "kali" field.
+func (_u *CredentialUpdate) SetKali(v string) *CredentialUpdate {
+	_u.mutation.SetKali(v)
+	return _u
+}
+
+// SetNillableKali sets the "kali" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillableKali(v *string) *CredentialUpdate {
+	if v != nil {
+		_u.SetKali(*v)
+	}
+	return _u
+}
+
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_u *CredentialUpdate) SetTeamID(id int) *CredentialUpdate {
 	_u.mutation.SetTeamID(id)
@@ -144,6 +228,24 @@ func (_u *CredentialUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	}
 	if value, ok := _u.mutation.Authentik(); ok {
 		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Store(); ok {
+		_spec.SetField(credential.FieldStore, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Ctfd(); ok {
+		_spec.SetField(credential.FieldCtfd, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Wazuh(); ok {
+		_spec.SetField(credential.FieldWazuh, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Pfsense(); ok {
+		_spec.SetField(credential.FieldPfsense, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Default(); ok {
+		_spec.SetField(credential.FieldDefault, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Kali(); ok {
+		_spec.SetField(credential.FieldKali, field.TypeString, value)
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -232,6 +334,90 @@ func (_u *CredentialUpdateOne) SetAuthentik(v string) *CredentialUpdateOne {
 func (_u *CredentialUpdateOne) SetNillableAuthentik(v *string) *CredentialUpdateOne {
 	if v != nil {
 		_u.SetAuthentik(*v)
+	}
+	return _u
+}
+
+// SetStore sets the "store" field.
+func (_u *CredentialUpdateOne) SetStore(v string) *CredentialUpdateOne {
+	_u.mutation.SetStore(v)
+	return _u
+}
+
+// SetNillableStore sets the "store" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillableStore(v *string) *CredentialUpdateOne {
+	if v != nil {
+		_u.SetStore(*v)
+	}
+	return _u
+}
+
+// SetCtfd sets the "ctfd" field.
+func (_u *CredentialUpdateOne) SetCtfd(v string) *CredentialUpdateOne {
+	_u.mutation.SetCtfd(v)
+	return _u
+}
+
+// SetNillableCtfd sets the "ctfd" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillableCtfd(v *string) *CredentialUpdateOne {
+	if v != nil {
+		_u.SetCtfd(*v)
+	}
+	return _u
+}
+
+// SetWazuh sets the "wazuh" field.
+func (_u *CredentialUpdateOne) SetWazuh(v string) *CredentialUpdateOne {
+	_u.mutation.SetWazuh(v)
+	return _u
+}
+
+// SetNillableWazuh sets the "wazuh" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillableWazuh(v *string) *CredentialUpdateOne {
+	if v != nil {
+		_u.SetWazuh(*v)
+	}
+	return _u
+}
+
+// SetPfsense sets the "pfsense" field.
+func (_u *CredentialUpdateOne) SetPfsense(v string) *CredentialUpdateOne {
+	_u.mutation.SetPfsense(v)
+	return _u
+}
+
+// SetNillablePfsense sets the "pfsense" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillablePfsense(v *string) *CredentialUpdateOne {
+	if v != nil {
+		_u.SetPfsense(*v)
+	}
+	return _u
+}
+
+// SetDefault sets the "default" field.
+func (_u *CredentialUpdateOne) SetDefault(v string) *CredentialUpdateOne {
+	_u.mutation.SetDefault(v)
+	return _u
+}
+
+// SetNillableDefault sets the "default" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillableDefault(v *string) *CredentialUpdateOne {
+	if v != nil {
+		_u.SetDefault(*v)
+	}
+	return _u
+}
+
+// SetKali sets the "kali" field.
+func (_u *CredentialUpdateOne) SetKali(v string) *CredentialUpdateOne {
+	_u.mutation.SetKali(v)
+	return _u
+}
+
+// SetNillableKali sets the "kali" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillableKali(v *string) *CredentialUpdateOne {
+	if v != nil {
+		_u.SetKali(*v)
 	}
 	return _u
 }
@@ -340,6 +526,24 @@ func (_u *CredentialUpdateOne) sqlSave(ctx context.Context) (_node *Credential, 
 	}
 	if value, ok := _u.mutation.Authentik(); ok {
 		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Store(); ok {
+		_spec.SetField(credential.FieldStore, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Ctfd(); ok {
+		_spec.SetField(credential.FieldCtfd, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Wazuh(); ok {
+		_spec.SetField(credential.FieldWazuh, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Pfsense(); ok {
+		_spec.SetField(credential.FieldPfsense, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Default(); ok {
+		_spec.SetField(credential.FieldDefault, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Kali(); ok {
+		_spec.SetField(credential.FieldKali, field.TypeString, value)
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{

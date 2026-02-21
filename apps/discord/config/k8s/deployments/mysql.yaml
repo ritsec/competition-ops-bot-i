@@ -30,7 +30,6 @@ spec:
       - image: mysql:9
         name: mysql
         env:
-          # Use secret in real usage
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:

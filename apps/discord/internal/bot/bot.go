@@ -29,7 +29,8 @@ var (
 	// SlashCommandHandlers is a map of all slash command handlers
 	slashCommandHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) = make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate))
 
-	// TODO: Find a better way to specify this. Env variables the best quick option.
+	ComponentHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) = make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate))
+
 	// For the future, COBI should handle server setup as well.
 )
 
@@ -50,7 +51,7 @@ func (b *Bot) Start() {
 	slashCommands["refresh"] = b.Refresh
 	slashCommands["query"] = b.Query
 	slashCommands["creds"] = b.Creds
-	slashCommands["server"] = b.Server
+	// slashCommands["server"] = b.Server
 
 	// Register slash commands
 	b.registerSlashCommands()
@@ -65,6 +66,11 @@ func (b *Bot) Start() {
 			data := i.ApplicationCommandData()
 
 			if command, ok := slashCommandHandlers[data.Name]; ok {
+				command(s, i)
+			}
+
+		case discordgo.InteractionModalSubmit:
+			if command, ok := ComponentHandlers[i.ModalSubmitData().CustomID]; ok {
 				command(s, i)
 			}
 		}
