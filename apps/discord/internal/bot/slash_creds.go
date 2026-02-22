@@ -17,10 +17,10 @@ type Creds struct {
 	Compsole  string `csv:"Compsole (compsole.ritsec.cloud)"`
 	Scorify   string `csv:"Scorify (scoring.ists.space)"`
 	Authentik string `csv:"Authentik (auth.ists.io)"`
-	Store     string `csv:"Store (store.ists.io)"`
+	Store     string `csv:"Store (store.ists.space)"`
 	CTFd      string `csv:"CTFd (ctf.ists.space)"`
 	Wazuh     string `csv:"Wazuh"`
-	pfSense   string `csv:"pfSense"`
+	PfSense   string `csv:"pfSense"`
 	Default   string `csv:"Default Password Linux & Windows"`
 	Kali      string `csv:"Kali KoTH Access"`
 }
@@ -131,7 +131,30 @@ func (b *Bot) handleCreds(entries []*Creds) error {
 				SetStore(entry.Store).
 				SetCtfd(entry.CTFd).
 				SetWazuh(entry.Wazuh).
-				SetPfsense(entry.pfSense).
+				SetPfsense(entry.PfSense).
+				SetDefault(entry.Default).
+				SetKali(entry.Kali).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
+
+			// Add credential to team
+			t, err = t.Update().
+				AddCredential(c).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
+		} else {
+			c, err = c.Update().
+				SetCompsole(entry.Compsole).
+				SetScorify(entry.Scorify).
+				SetAuthentik(entry.Authentik).
+				SetStore(entry.Store).
+				SetCtfd(entry.CTFd).
+				SetWazuh(entry.Wazuh).
+				SetPfsense(entry.PfSense).
 				SetDefault(entry.Default).
 				SetKali(entry.Kali).
 				Save(b.ClientCtx)
@@ -140,13 +163,6 @@ func (b *Bot) handleCreds(entries []*Creds) error {
 			}
 		}
 
-		// Add credential to team
-		t, err = t.Update().
-			AddCredential(c).
-			Save(b.ClientCtx)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }
