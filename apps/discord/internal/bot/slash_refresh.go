@@ -118,7 +118,7 @@ func (b *Bot) initChannels() error {
 		return err
 	}
 
-	blueRegex := regexp.MustCompile(`^team([1-9]|1[0-9]|2[01])-chat$`)
+	blueRegex := regexp.MustCompile(`^blue-([1-9]|1[0-9]|2[01])-chat$`)
 
 	for _, channel := range channels {
 		match := blueRegex.FindStringSubmatch(channel.Name)
