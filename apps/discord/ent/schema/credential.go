@@ -20,6 +20,18 @@ func (Credential) Fields() []ent.Field {
 			Comment("Scorify password"),
 		field.String("authentik").
 			Comment("Authentik password"),
+		field.String("store").
+			Comment("Store"),
+		field.String("ctfd").
+			Comment("CTFd password"),
+		field.String("wazuh").
+			Comment("Wazuh password"),
+		field.String("pfsense").
+			Comment("pfSense password"),
+		field.String("default").
+			Comment("Default password"),
+		field.String("kali").
+			Comment("Kali password"),
 	}
 }
 

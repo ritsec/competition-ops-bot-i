@@ -23,6 +23,18 @@ type Credential struct {
 	Scorify string `json:"scorify,omitempty"`
 	// Authentik password
 	Authentik string `json:"authentik,omitempty"`
+	// Store
+	Store string `json:"store,omitempty"`
+	// CTFd password
+	Ctfd string `json:"ctfd,omitempty"`
+	// Wazuh password
+	Wazuh string `json:"wazuh,omitempty"`
+	// pfSense password
+	Pfsense string `json:"pfsense,omitempty"`
+	// Default password
+	Default string `json:"default,omitempty"`
+	// Kali password
+	Kali string `json:"kali,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CredentialQuery when eager-loading is set.
 	Edges           CredentialEdges `json:"edges"`
@@ -57,7 +69,7 @@ func (*Credential) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case credential.FieldID:
 			values[i] = new(sql.NullInt64)
-		case credential.FieldCompsole, credential.FieldScorify, credential.FieldAuthentik:
+		case credential.FieldCompsole, credential.FieldScorify, credential.FieldAuthentik, credential.FieldStore, credential.FieldCtfd, credential.FieldWazuh, credential.FieldPfsense, credential.FieldDefault, credential.FieldKali:
 			values[i] = new(sql.NullString)
 		case credential.ForeignKeys[0]: // team_credential
 			values[i] = new(sql.NullInt64)
@@ -99,6 +111,42 @@ func (_m *Credential) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field authentik", values[i])
 			} else if value.Valid {
 				_m.Authentik = value.String
+			}
+		case credential.FieldStore:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field store", values[i])
+			} else if value.Valid {
+				_m.Store = value.String
+			}
+		case credential.FieldCtfd:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field ctfd", values[i])
+			} else if value.Valid {
+				_m.Ctfd = value.String
+			}
+		case credential.FieldWazuh:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field wazuh", values[i])
+			} else if value.Valid {
+				_m.Wazuh = value.String
+			}
+		case credential.FieldPfsense:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field pfsense", values[i])
+			} else if value.Valid {
+				_m.Pfsense = value.String
+			}
+		case credential.FieldDefault:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field default", values[i])
+			} else if value.Valid {
+				_m.Default = value.String
+			}
+		case credential.FieldKali:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field kali", values[i])
+			} else if value.Valid {
+				_m.Kali = value.String
 			}
 		case credential.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -156,6 +204,24 @@ func (_m *Credential) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("authentik=")
 	builder.WriteString(_m.Authentik)
+	builder.WriteString(", ")
+	builder.WriteString("store=")
+	builder.WriteString(_m.Store)
+	builder.WriteString(", ")
+	builder.WriteString("ctfd=")
+	builder.WriteString(_m.Ctfd)
+	builder.WriteString(", ")
+	builder.WriteString("wazuh=")
+	builder.WriteString(_m.Wazuh)
+	builder.WriteString(", ")
+	builder.WriteString("pfsense=")
+	builder.WriteString(_m.Pfsense)
+	builder.WriteString(", ")
+	builder.WriteString("default=")
+	builder.WriteString(_m.Default)
+	builder.WriteString(", ")
+	builder.WriteString("kali=")
+	builder.WriteString(_m.Kali)
 	builder.WriteByte(')')
 	return builder.String()
 }

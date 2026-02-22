@@ -3,17 +3,26 @@ package bot
 import (
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ritsec/competition-ops-bot-i/ent"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
 type Creds struct {
+	TeamType  string `csv:"Team Type"`
 	TeamNum   string `csv:"Team Number"`
-	Compsole  string `csv:"Compsole"`
-	Scorify   string `csv:"Scorify"`
-	Authentik string `csv:"Authentik"`
+	Compsole  string `csv:"Compsole (compsole.ritsec.cloud)"`
+	Scorify   string `csv:"Scorify (scoring.ists.space)"`
+	Authentik string `csv:"Authentik (auth.ists.io)"`
+	Store     string `csv:"Store (store.ists.space)"`
+	CTFd      string `csv:"CTFd (ctf.ists.space)"`
+	Wazuh     string `csv:"Wazuh"`
+	PfSense   string `csv:"pfSense"`
+	Default   string `csv:"Default Password Linux & Windows"`
+	Kali      string `csv:"Kali KoTH Access"`
 }
 
 func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -43,7 +52,6 @@ func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 		},
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			choice := i.ApplicationCommandData().Options[0].Name
-			log.Println(choice)
 
 			switch choice {
 			case "process":
@@ -67,10 +75,12 @@ func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 
 				updateMessage(s, i, "Successfully added team data!")
 			case "send":
-				if err := b.sendCreds(); err != nil {
-					log.Fatal(err)
+				verified := validateAction(s, i)
+				if verified {
+					if err := b.sendCreds(); err != nil {
+						log.Fatal(err)
+					}
 				}
-				updateMessage(s, i, "Successfully sent messages")
 
 			}
 		}
@@ -79,17 +89,31 @@ func (b *Bot) Creds() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 func (b *Bot) handleCreds(entries []*Creds) error {
 
 	for _, entry := range entries {
-		// Team number
-		num, err := strconv.Atoi(entry.TeamNum)
-		if err != nil {
-			return err
+
+		var teamType team.Type = team.Type(strings.ToLower(entry.TeamType))
+		var t *ent.Team
+		var err error
+
+		if teamType == team.TypeBlue {
+			// Team number
+			teamNum, err := strconv.Atoi(entry.TeamNum)
+			if err != nil {
+				return err
+			}
+
+			t, err = b.Client.Team.
+				Query().
+				Where(team.And(team.TypeEQ(teamType), team.Number(teamNum))).
+				Only(b.ClientCtx)
+		} else {
+			// The query for teams besides Blue omits the team number field
+			t, err = b.Client.Team.
+				Query().
+				Where(team.TypeEQ(teamType)).
+				Only(b.ClientCtx)
 		}
 
 		// Get team object from team number
-		t, err := b.Client.Team.
-			Query().
-			Where(team.And(team.TypeEQ(team.TypeBlue), team.Number(num))).
-			Only(b.ClientCtx)
 		if err != nil {
 			return err
 		}
@@ -104,19 +128,41 @@ func (b *Bot) handleCreds(entries []*Creds) error {
 				SetCompsole(entry.Compsole).
 				SetScorify(entry.Scorify).
 				SetAuthentik(entry.Authentik).
+				SetStore(entry.Store).
+				SetCtfd(entry.CTFd).
+				SetWazuh(entry.Wazuh).
+				SetPfsense(entry.PfSense).
+				SetDefault(entry.Default).
+				SetKali(entry.Kali).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
+
+			// Add credential to team
+			t, err = t.Update().
+				AddCredential(c).
+				Save(b.ClientCtx)
+			if err != nil {
+				return err
+			}
+		} else {
+			c, err = c.Update().
+				SetCompsole(entry.Compsole).
+				SetScorify(entry.Scorify).
+				SetAuthentik(entry.Authentik).
+				SetStore(entry.Store).
+				SetCtfd(entry.CTFd).
+				SetWazuh(entry.Wazuh).
+				SetPfsense(entry.PfSense).
+				SetDefault(entry.Default).
+				SetKali(entry.Kali).
 				Save(b.ClientCtx)
 			if err != nil {
 				return err
 			}
 		}
 
-		// Add credential to team
-		t, err = t.Update().
-			AddCredential(c).
-			Save(b.ClientCtx)
-		if err != nil {
-			return err
-		}
 	}
 	return nil
 }

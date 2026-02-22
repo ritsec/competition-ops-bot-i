@@ -132,6 +132,8 @@ const (
 	SubteamStore   Subteam = "store"
 	SubteamCtf     Subteam = "ctf"
 	SubteamKoth    Subteam = "koth"
+	SubteamInjects Subteam = "injects"
+	SubteamGame    Subteam = "game"
 )
 
 func (s Subteam) String() string {
@@ -141,7 +143,7 @@ func (s Subteam) String() string {
 // SubteamValidator is a validator for the "subteam" field enum values. It is called by the builders before save.
 func SubteamValidator(s Subteam) error {
 	switch s {
-	case SubteamInfra, SubteamLinux, SubteamWindows, SubteamScoring, SubteamLogging, SubteamStore, SubteamCtf, SubteamKoth:
+	case SubteamInfra, SubteamLinux, SubteamWindows, SubteamScoring, SubteamLogging, SubteamStore, SubteamCtf, SubteamKoth, SubteamInjects, SubteamGame:
 		return nil
 	default:
 		return fmt.Errorf("team: invalid enum value for subteam field: %q", s)

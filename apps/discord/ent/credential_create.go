@@ -38,6 +38,42 @@ func (_c *CredentialCreate) SetAuthentik(v string) *CredentialCreate {
 	return _c
 }
 
+// SetStore sets the "store" field.
+func (_c *CredentialCreate) SetStore(v string) *CredentialCreate {
+	_c.mutation.SetStore(v)
+	return _c
+}
+
+// SetCtfd sets the "ctfd" field.
+func (_c *CredentialCreate) SetCtfd(v string) *CredentialCreate {
+	_c.mutation.SetCtfd(v)
+	return _c
+}
+
+// SetWazuh sets the "wazuh" field.
+func (_c *CredentialCreate) SetWazuh(v string) *CredentialCreate {
+	_c.mutation.SetWazuh(v)
+	return _c
+}
+
+// SetPfsense sets the "pfsense" field.
+func (_c *CredentialCreate) SetPfsense(v string) *CredentialCreate {
+	_c.mutation.SetPfsense(v)
+	return _c
+}
+
+// SetDefault sets the "default" field.
+func (_c *CredentialCreate) SetDefault(v string) *CredentialCreate {
+	_c.mutation.SetDefault(v)
+	return _c
+}
+
+// SetKali sets the "kali" field.
+func (_c *CredentialCreate) SetKali(v string) *CredentialCreate {
+	_c.mutation.SetKali(v)
+	return _c
+}
+
 // SetTeamID sets the "team" edge to the Team entity by ID.
 func (_c *CredentialCreate) SetTeamID(id int) *CredentialCreate {
 	_c.mutation.SetTeamID(id)
@@ -100,6 +136,24 @@ func (_c *CredentialCreate) check() error {
 	if _, ok := _c.mutation.Authentik(); !ok {
 		return &ValidationError{Name: "authentik", err: errors.New(`ent: missing required field "Credential.authentik"`)}
 	}
+	if _, ok := _c.mutation.Store(); !ok {
+		return &ValidationError{Name: "store", err: errors.New(`ent: missing required field "Credential.store"`)}
+	}
+	if _, ok := _c.mutation.Ctfd(); !ok {
+		return &ValidationError{Name: "ctfd", err: errors.New(`ent: missing required field "Credential.ctfd"`)}
+	}
+	if _, ok := _c.mutation.Wazuh(); !ok {
+		return &ValidationError{Name: "wazuh", err: errors.New(`ent: missing required field "Credential.wazuh"`)}
+	}
+	if _, ok := _c.mutation.Pfsense(); !ok {
+		return &ValidationError{Name: "pfsense", err: errors.New(`ent: missing required field "Credential.pfsense"`)}
+	}
+	if _, ok := _c.mutation.Default(); !ok {
+		return &ValidationError{Name: "default", err: errors.New(`ent: missing required field "Credential.default"`)}
+	}
+	if _, ok := _c.mutation.Kali(); !ok {
+		return &ValidationError{Name: "kali", err: errors.New(`ent: missing required field "Credential.kali"`)}
+	}
 	return nil
 }
 
@@ -137,6 +191,30 @@ func (_c *CredentialCreate) createSpec() (*Credential, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Authentik(); ok {
 		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
 		_node.Authentik = value
+	}
+	if value, ok := _c.mutation.Store(); ok {
+		_spec.SetField(credential.FieldStore, field.TypeString, value)
+		_node.Store = value
+	}
+	if value, ok := _c.mutation.Ctfd(); ok {
+		_spec.SetField(credential.FieldCtfd, field.TypeString, value)
+		_node.Ctfd = value
+	}
+	if value, ok := _c.mutation.Wazuh(); ok {
+		_spec.SetField(credential.FieldWazuh, field.TypeString, value)
+		_node.Wazuh = value
+	}
+	if value, ok := _c.mutation.Pfsense(); ok {
+		_spec.SetField(credential.FieldPfsense, field.TypeString, value)
+		_node.Pfsense = value
+	}
+	if value, ok := _c.mutation.Default(); ok {
+		_spec.SetField(credential.FieldDefault, field.TypeString, value)
+		_node.Default = value
+	}
+	if value, ok := _c.mutation.Kali(); ok {
+		_spec.SetField(credential.FieldKali, field.TypeString, value)
+		_node.Kali = value
 	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
