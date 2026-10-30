@@ -3,29 +3,43 @@ package slash
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent"
+	"github.com/ritsec/competition-ops-bot-i/ent/schema"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/internal/database"
 	"github.com/ritsec/competition-ops-bot-i/internal/logging"
 	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
-type Cred struct {
-	TeamType  string `csv:"Team Type"`
-	TeamNum   string `csv:"Team Number"`
-	Compsole  string `csv:"Compsole (compsole.ritsec.cloud)"`
-	Scorify   string `csv:"Scorify (scoring.ists.space)"`
-	Authentik string `csv:"Authentik (auth.ists.io)"`
-	Store     string `csv:"Store (store.ists.space)"`
-	CTFd      string `csv:"CTFd (ctf.ists.space)"`
-	Wazuh     string `csv:"Wazuh"`
-	PfSense   string `csv:"pfSense"`
-	Default   string `csv:"Default Password Linux & Windows"`
-	Kali      string `csv:"Kali KoTH Access"`
+// Placeholders in the service table that are filled in per team
+const (
+	teamNumberPlaceholder   = "##"              // e.g. "team##" becomes "team01"
+	teamPasswordPlaceholder = "<TEAM PASSWORD>" // replaced by the team's password
+)
+
+// Column positions in the credentials sheet. The sheet holds two tables side
+// by side sharing one header row: teams in A-B, and services in D-F.
+const (
+	colTeam            = 0 // "team01"
+	colTeamPassword    = 1
+	colServiceName     = 3 // "Router", "vpn.irsec.club", ...
+	colServiceUsername = 4
+	colServicePassword = 5
+)
+
+// teamIDRegex matches the team column, capturing the number as written
+var teamIDRegex = regexp.MustCompile(`(?i)^team(\d+)$`)
+
+// teamCred is one row of the team table
+type teamCred struct {
+	ID       string // Team number as written in the sheet, e.g. "01"
+	Number   int
+	Password string
 }
 
 func Creds(db *ent.Client) (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
@@ -93,28 +107,112 @@ func processCreds(ctx context.Context, s *discordgo.Session, i *discordgo.Intera
 		return
 	}
 
-	// Populate array of entries from CSV
-	entries, err := utils.HandleCSV[Cred](fileURL)
+	rows, err := utils.ReadCSV(fileURL)
+	if err != nil {
+		reportError(ctx, s, i, "Could not download CSV", err)
+		return
+	}
+
+	teams, services, err := parseCredsSheet(rows)
 	if err != nil {
 		reportError(ctx, s, i, "Could not parse CSV", err)
 		return
 	}
 
 	setStatus(ctx, s, i, "Adding credentials to database...")
-	if err := handleCreds(ctx, db, entries); err != nil {
+	if err := handleCreds(ctx, db, teams, services); err != nil {
 		reportError(ctx, s, i, "Could not add credentials", err)
 		return
 	}
 
-	setStatus(ctx, s, i, "Successfully added credentials!")
+	setStatus(ctx, s, i, fmt.Sprintf("Successfully added credentials for %d teams and %d services!", len(teams), len(services)))
 }
 
-// handleCreds adds or updates the credentials for each entry. Entries are
+// parseCredsSheet reads the team and service tables from the credentials
+// sheet. The first row is the header and is skipped.
+func parseCredsSheet(rows [][]string) ([]teamCred, []schema.ServiceCredential, error) {
+	if len(rows) < 2 {
+		return nil, nil, fmt.Errorf("sheet has no data rows")
+	}
+
+	// Rows can be shorter than the header when trailing cells are empty
+	cell := func(row []string, col int) string {
+		if col < len(row) {
+			return row[col]
+		}
+		return ""
+	}
+
+	var teams []teamCred
+	var services []schema.ServiceCredential
+
+	for idx, row := range rows[1:] {
+		rowNum := idx + 2 // 1-based, after the header
+
+		// Team table
+		if id := strings.TrimSpace(cell(row, colTeam)); id != "" {
+			match := teamIDRegex.FindStringSubmatch(id)
+			if match == nil {
+				return nil, nil, fmt.Errorf("row %d: team %q should look like team01", rowNum, id)
+			}
+			num, err := strconv.Atoi(match[1])
+			if err != nil {
+				return nil, nil, fmt.Errorf("row %d: invalid team number %q: %w", rowNum, match[1], err)
+			}
+
+			password := cell(row, colTeamPassword)
+			if password == "" {
+				return nil, nil, fmt.Errorf("row %d: %s has no password", rowNum, id)
+			}
+
+			teams = append(teams, teamCred{ID: match[1], Number: num, Password: password})
+		}
+
+		// Service table
+		if name := strings.TrimSpace(cell(row, colServiceName)); name != "" {
+			services = append(services, schema.ServiceCredential{
+				Name:     name,
+				Username: strings.TrimSpace(cell(row, colServiceUsername)),
+				Password: cell(row, colServicePassword),
+			})
+		}
+	}
+
+	if len(teams) == 0 {
+		return nil, nil, fmt.Errorf("no teams found in column A")
+	}
+	if len(services) == 0 {
+		return nil, nil, fmt.Errorf("no services found in column D")
+	}
+
+	return teams, services, nil
+}
+
+// servicesFor returns the service logins with the team's number and password
+// filled in
+func (t teamCred) servicesFor(services []schema.ServiceCredential) []schema.ServiceCredential {
+	replacer := strings.NewReplacer(
+		teamNumberPlaceholder, t.ID,
+		teamPasswordPlaceholder, t.Password,
+	)
+
+	filled := make([]schema.ServiceCredential, len(services))
+	for i, service := range services {
+		filled[i] = schema.ServiceCredential{
+			Name:     service.Name,
+			Username: replacer.Replace(service.Username),
+			Password: replacer.Replace(service.Password),
+		}
+	}
+	return filled
+}
+
+// handleCreds adds or updates the credentials for each team. Teams are
 // written in a single transaction so a bad row doesn't leave a partial import.
-func handleCreds(ctx context.Context, db *ent.Client, entries []*Cred) error {
+func handleCreds(ctx context.Context, db *ent.Client, teams []teamCred, services []schema.ServiceCredential) error {
 	return database.WithTx(ctx, db, func(tx *ent.Client) error {
-		for _, entry := range entries {
-			if err := upsertCred(ctx, tx, entry); err != nil {
+		for _, t := range teams {
+			if err := upsertCred(ctx, tx, t, t.servicesFor(services)); err != nil {
 				return err
 			}
 		}
@@ -122,27 +220,16 @@ func handleCreds(ctx context.Context, db *ent.Client, entries []*Cred) error {
 	})
 }
 
-// upsertCred creates or updates the credential for the team in entry
-func upsertCred(ctx context.Context, db *ent.Client, entry *Cred) error {
-	teamType := team.Type(strings.ToLower(entry.TeamType))
-	if err := team.TypeValidator(teamType); err != nil {
-		return fmt.Errorf("invalid team type %q: %w", entry.TeamType, err)
+// upsertCred creates or updates the credential for a Blue team
+func upsertCred(ctx context.Context, db *ent.Client, tc teamCred, services []schema.ServiceCredential) error {
+	t, err := db.Team.Query().
+		Where(team.TypeEQ(team.TypeBlue), team.Number(tc.Number)).
+		Only(ctx)
+	if ent.IsNotFound(err) {
+		return fmt.Errorf("Blue Team %d doesn't exist yet, run /refresh Teams first", tc.Number)
 	}
-
-	query := db.Team.Query().Where(team.TypeEQ(teamType))
-
-	// Only Blue teams are numbered, other team types are unique by type
-	if teamType == team.TypeBlue {
-		teamNum, err := strconv.Atoi(entry.TeamNum)
-		if err != nil {
-			return fmt.Errorf("invalid team number %q: %w", entry.TeamNum, err)
-		}
-		query = query.Where(team.Number(teamNum))
-	}
-
-	t, err := query.Only(ctx)
 	if err != nil {
-		return fmt.Errorf("could not find %s team %s: %w", teamType, entry.TeamNum, err)
+		return err
 	}
 
 	// Check if credentials entry exists
@@ -152,29 +239,15 @@ func upsertCred(ctx context.Context, db *ent.Client, entry *Cred) error {
 		return db.Credential.
 			Create().
 			SetTeam(t).
-			SetCompsole(entry.Compsole).
-			SetScorify(entry.Scorify).
-			SetAuthentik(entry.Authentik).
-			SetStore(entry.Store).
-			SetCtfd(entry.CTFd).
-			SetWazuh(entry.Wazuh).
-			SetPfsense(entry.PfSense).
-			SetDefault(entry.Default).
-			SetKali(entry.Kali).
+			SetPassword(tc.Password).
+			SetServices(services).
 			Exec(ctx)
 	case err != nil:
 		return err
 	default:
-		return c.Update().
-			SetCompsole(entry.Compsole).
-			SetScorify(entry.Scorify).
-			SetAuthentik(entry.Authentik).
-			SetStore(entry.Store).
-			SetCtfd(entry.CTFd).
-			SetWazuh(entry.Wazuh).
-			SetPfsense(entry.PfSense).
-			SetDefault(entry.Default).
-			SetKali(entry.Kali).
+		return db.Credential.UpdateOne(c).
+			SetPassword(tc.Password).
+			SetServices(services).
 			Exec(ctx)
 	}
 }

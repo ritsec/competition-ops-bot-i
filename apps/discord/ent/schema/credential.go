@@ -11,27 +11,21 @@ type Credential struct {
 	ent.Schema
 }
 
+// ServiceCredential is a team's login for a single competition service
+type ServiceCredential struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // Fields of the Credential.
 func (Credential) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("compsole").
-			Comment("Compsole password"),
-		field.String("scorify").
-			Comment("Scorify password"),
-		field.String("authentik").
-			Comment("Authentik password"),
-		field.String("store").
-			Comment("Store"),
-		field.String("ctfd").
-			Comment("CTFd password"),
-		field.String("wazuh").
-			Comment("Wazuh password"),
-		field.String("pfsense").
-			Comment("pfSense password"),
-		field.String("default").
-			Comment("Default password"),
-		field.String("kali").
-			Comment("Kali password"),
+		field.String("password").
+			Sensitive().
+			Comment("Team password"),
+		field.JSON("services", []ServiceCredential{}).
+			Comment("Logins for each competition service, with team values filled in"),
 	}
 }
 

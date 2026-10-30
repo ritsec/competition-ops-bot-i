@@ -3,12 +3,14 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
+	"github.com/ritsec/competition-ops-bot-i/ent/schema"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
@@ -17,24 +19,10 @@ type Credential struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// Compsole password
-	Compsole string `json:"compsole,omitempty"`
-	// Scorify password
-	Scorify string `json:"scorify,omitempty"`
-	// Authentik password
-	Authentik string `json:"authentik,omitempty"`
-	// Store
-	Store string `json:"store,omitempty"`
-	// CTFd password
-	Ctfd string `json:"ctfd,omitempty"`
-	// Wazuh password
-	Wazuh string `json:"wazuh,omitempty"`
-	// pfSense password
-	Pfsense string `json:"pfsense,omitempty"`
-	// Default password
-	Default string `json:"default,omitempty"`
-	// Kali password
-	Kali string `json:"kali,omitempty"`
+	// Team password
+	Password string `json:"-"`
+	// Logins for each competition service, with team values filled in
+	Services []schema.ServiceCredential `json:"services,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CredentialQuery when eager-loading is set.
 	Edges           CredentialEdges `json:"edges"`
@@ -67,9 +55,11 @@ func (*Credential) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case credential.FieldServices:
+			values[i] = new([]byte)
 		case credential.FieldID:
 			values[i] = new(sql.NullInt64)
-		case credential.FieldCompsole, credential.FieldScorify, credential.FieldAuthentik, credential.FieldStore, credential.FieldCtfd, credential.FieldWazuh, credential.FieldPfsense, credential.FieldDefault, credential.FieldKali:
+		case credential.FieldPassword:
 			values[i] = new(sql.NullString)
 		case credential.ForeignKeys[0]: // team_credential
 			values[i] = new(sql.NullInt64)
@@ -94,59 +84,19 @@ func (_m *Credential) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			_m.ID = int(value.Int64)
-		case credential.FieldCompsole:
+		case credential.FieldPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field compsole", values[i])
+				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
-				_m.Compsole = value.String
+				_m.Password = value.String
 			}
-		case credential.FieldScorify:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field scorify", values[i])
-			} else if value.Valid {
-				_m.Scorify = value.String
-			}
-		case credential.FieldAuthentik:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field authentik", values[i])
-			} else if value.Valid {
-				_m.Authentik = value.String
-			}
-		case credential.FieldStore:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field store", values[i])
-			} else if value.Valid {
-				_m.Store = value.String
-			}
-		case credential.FieldCtfd:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field ctfd", values[i])
-			} else if value.Valid {
-				_m.Ctfd = value.String
-			}
-		case credential.FieldWazuh:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field wazuh", values[i])
-			} else if value.Valid {
-				_m.Wazuh = value.String
-			}
-		case credential.FieldPfsense:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field pfsense", values[i])
-			} else if value.Valid {
-				_m.Pfsense = value.String
-			}
-		case credential.FieldDefault:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field default", values[i])
-			} else if value.Valid {
-				_m.Default = value.String
-			}
-		case credential.FieldKali:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field kali", values[i])
-			} else if value.Valid {
-				_m.Kali = value.String
+		case credential.FieldServices:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field services", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Services); err != nil {
+					return fmt.Errorf("unmarshal field services: %w", err)
+				}
 			}
 		case credential.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -196,32 +146,10 @@ func (_m *Credential) String() string {
 	var builder strings.Builder
 	builder.WriteString("Credential(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
-	builder.WriteString("compsole=")
-	builder.WriteString(_m.Compsole)
+	builder.WriteString("password=<sensitive>")
 	builder.WriteString(", ")
-	builder.WriteString("scorify=")
-	builder.WriteString(_m.Scorify)
-	builder.WriteString(", ")
-	builder.WriteString("authentik=")
-	builder.WriteString(_m.Authentik)
-	builder.WriteString(", ")
-	builder.WriteString("store=")
-	builder.WriteString(_m.Store)
-	builder.WriteString(", ")
-	builder.WriteString("ctfd=")
-	builder.WriteString(_m.Ctfd)
-	builder.WriteString(", ")
-	builder.WriteString("wazuh=")
-	builder.WriteString(_m.Wazuh)
-	builder.WriteString(", ")
-	builder.WriteString("pfsense=")
-	builder.WriteString(_m.Pfsense)
-	builder.WriteString(", ")
-	builder.WriteString("default=")
-	builder.WriteString(_m.Default)
-	builder.WriteString(", ")
-	builder.WriteString("kali=")
-	builder.WriteString(_m.Kali)
+	builder.WriteString("services=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Services))
 	builder.WriteByte(')')
 	return builder.String()
 }

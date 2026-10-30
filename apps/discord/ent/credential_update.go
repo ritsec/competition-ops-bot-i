@@ -9,9 +9,11 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
+	"github.com/ritsec/competition-ops-bot-i/ent/schema"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
@@ -28,129 +30,29 @@ func (_u *CredentialUpdate) Where(ps ...predicate.Credential) *CredentialUpdate 
 	return _u
 }
 
-// SetCompsole sets the "compsole" field.
-func (_u *CredentialUpdate) SetCompsole(v string) *CredentialUpdate {
-	_u.mutation.SetCompsole(v)
+// SetPassword sets the "password" field.
+func (_u *CredentialUpdate) SetPassword(v string) *CredentialUpdate {
+	_u.mutation.SetPassword(v)
 	return _u
 }
 
-// SetNillableCompsole sets the "compsole" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableCompsole(v *string) *CredentialUpdate {
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_u *CredentialUpdate) SetNillablePassword(v *string) *CredentialUpdate {
 	if v != nil {
-		_u.SetCompsole(*v)
+		_u.SetPassword(*v)
 	}
 	return _u
 }
 
-// SetScorify sets the "scorify" field.
-func (_u *CredentialUpdate) SetScorify(v string) *CredentialUpdate {
-	_u.mutation.SetScorify(v)
+// SetServices sets the "services" field.
+func (_u *CredentialUpdate) SetServices(v []schema.ServiceCredential) *CredentialUpdate {
+	_u.mutation.SetServices(v)
 	return _u
 }
 
-// SetNillableScorify sets the "scorify" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableScorify(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetScorify(*v)
-	}
-	return _u
-}
-
-// SetAuthentik sets the "authentik" field.
-func (_u *CredentialUpdate) SetAuthentik(v string) *CredentialUpdate {
-	_u.mutation.SetAuthentik(v)
-	return _u
-}
-
-// SetNillableAuthentik sets the "authentik" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableAuthentik(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetAuthentik(*v)
-	}
-	return _u
-}
-
-// SetStore sets the "store" field.
-func (_u *CredentialUpdate) SetStore(v string) *CredentialUpdate {
-	_u.mutation.SetStore(v)
-	return _u
-}
-
-// SetNillableStore sets the "store" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableStore(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetStore(*v)
-	}
-	return _u
-}
-
-// SetCtfd sets the "ctfd" field.
-func (_u *CredentialUpdate) SetCtfd(v string) *CredentialUpdate {
-	_u.mutation.SetCtfd(v)
-	return _u
-}
-
-// SetNillableCtfd sets the "ctfd" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableCtfd(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetCtfd(*v)
-	}
-	return _u
-}
-
-// SetWazuh sets the "wazuh" field.
-func (_u *CredentialUpdate) SetWazuh(v string) *CredentialUpdate {
-	_u.mutation.SetWazuh(v)
-	return _u
-}
-
-// SetNillableWazuh sets the "wazuh" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableWazuh(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetWazuh(*v)
-	}
-	return _u
-}
-
-// SetPfsense sets the "pfsense" field.
-func (_u *CredentialUpdate) SetPfsense(v string) *CredentialUpdate {
-	_u.mutation.SetPfsense(v)
-	return _u
-}
-
-// SetNillablePfsense sets the "pfsense" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillablePfsense(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetPfsense(*v)
-	}
-	return _u
-}
-
-// SetDefault sets the "default" field.
-func (_u *CredentialUpdate) SetDefault(v string) *CredentialUpdate {
-	_u.mutation.SetDefault(v)
-	return _u
-}
-
-// SetNillableDefault sets the "default" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableDefault(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetDefault(*v)
-	}
-	return _u
-}
-
-// SetKali sets the "kali" field.
-func (_u *CredentialUpdate) SetKali(v string) *CredentialUpdate {
-	_u.mutation.SetKali(v)
-	return _u
-}
-
-// SetNillableKali sets the "kali" field if the given value is not nil.
-func (_u *CredentialUpdate) SetNillableKali(v *string) *CredentialUpdate {
-	if v != nil {
-		_u.SetKali(*v)
-	}
+// AppendServices appends value to the "services" field.
+func (_u *CredentialUpdate) AppendServices(v []schema.ServiceCredential) *CredentialUpdate {
+	_u.mutation.AppendServices(v)
 	return _u
 }
 
@@ -220,32 +122,16 @@ func (_u *CredentialUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Compsole(); ok {
-		_spec.SetField(credential.FieldCompsole, field.TypeString, value)
+	if value, ok := _u.mutation.Password(); ok {
+		_spec.SetField(credential.FieldPassword, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Scorify(); ok {
-		_spec.SetField(credential.FieldScorify, field.TypeString, value)
+	if value, ok := _u.mutation.Services(); ok {
+		_spec.SetField(credential.FieldServices, field.TypeJSON, value)
 	}
-	if value, ok := _u.mutation.Authentik(); ok {
-		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Store(); ok {
-		_spec.SetField(credential.FieldStore, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Ctfd(); ok {
-		_spec.SetField(credential.FieldCtfd, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Wazuh(); ok {
-		_spec.SetField(credential.FieldWazuh, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Pfsense(); ok {
-		_spec.SetField(credential.FieldPfsense, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Default(); ok {
-		_spec.SetField(credential.FieldDefault, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Kali(); ok {
-		_spec.SetField(credential.FieldKali, field.TypeString, value)
+	if value, ok := _u.mutation.AppendedServices(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, credential.FieldServices, value)
+		})
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -296,129 +182,29 @@ type CredentialUpdateOne struct {
 	mutation *CredentialMutation
 }
 
-// SetCompsole sets the "compsole" field.
-func (_u *CredentialUpdateOne) SetCompsole(v string) *CredentialUpdateOne {
-	_u.mutation.SetCompsole(v)
+// SetPassword sets the "password" field.
+func (_u *CredentialUpdateOne) SetPassword(v string) *CredentialUpdateOne {
+	_u.mutation.SetPassword(v)
 	return _u
 }
 
-// SetNillableCompsole sets the "compsole" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableCompsole(v *string) *CredentialUpdateOne {
+// SetNillablePassword sets the "password" field if the given value is not nil.
+func (_u *CredentialUpdateOne) SetNillablePassword(v *string) *CredentialUpdateOne {
 	if v != nil {
-		_u.SetCompsole(*v)
+		_u.SetPassword(*v)
 	}
 	return _u
 }
 
-// SetScorify sets the "scorify" field.
-func (_u *CredentialUpdateOne) SetScorify(v string) *CredentialUpdateOne {
-	_u.mutation.SetScorify(v)
+// SetServices sets the "services" field.
+func (_u *CredentialUpdateOne) SetServices(v []schema.ServiceCredential) *CredentialUpdateOne {
+	_u.mutation.SetServices(v)
 	return _u
 }
 
-// SetNillableScorify sets the "scorify" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableScorify(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetScorify(*v)
-	}
-	return _u
-}
-
-// SetAuthentik sets the "authentik" field.
-func (_u *CredentialUpdateOne) SetAuthentik(v string) *CredentialUpdateOne {
-	_u.mutation.SetAuthentik(v)
-	return _u
-}
-
-// SetNillableAuthentik sets the "authentik" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableAuthentik(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetAuthentik(*v)
-	}
-	return _u
-}
-
-// SetStore sets the "store" field.
-func (_u *CredentialUpdateOne) SetStore(v string) *CredentialUpdateOne {
-	_u.mutation.SetStore(v)
-	return _u
-}
-
-// SetNillableStore sets the "store" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableStore(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetStore(*v)
-	}
-	return _u
-}
-
-// SetCtfd sets the "ctfd" field.
-func (_u *CredentialUpdateOne) SetCtfd(v string) *CredentialUpdateOne {
-	_u.mutation.SetCtfd(v)
-	return _u
-}
-
-// SetNillableCtfd sets the "ctfd" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableCtfd(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetCtfd(*v)
-	}
-	return _u
-}
-
-// SetWazuh sets the "wazuh" field.
-func (_u *CredentialUpdateOne) SetWazuh(v string) *CredentialUpdateOne {
-	_u.mutation.SetWazuh(v)
-	return _u
-}
-
-// SetNillableWazuh sets the "wazuh" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableWazuh(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetWazuh(*v)
-	}
-	return _u
-}
-
-// SetPfsense sets the "pfsense" field.
-func (_u *CredentialUpdateOne) SetPfsense(v string) *CredentialUpdateOne {
-	_u.mutation.SetPfsense(v)
-	return _u
-}
-
-// SetNillablePfsense sets the "pfsense" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillablePfsense(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetPfsense(*v)
-	}
-	return _u
-}
-
-// SetDefault sets the "default" field.
-func (_u *CredentialUpdateOne) SetDefault(v string) *CredentialUpdateOne {
-	_u.mutation.SetDefault(v)
-	return _u
-}
-
-// SetNillableDefault sets the "default" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableDefault(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetDefault(*v)
-	}
-	return _u
-}
-
-// SetKali sets the "kali" field.
-func (_u *CredentialUpdateOne) SetKali(v string) *CredentialUpdateOne {
-	_u.mutation.SetKali(v)
-	return _u
-}
-
-// SetNillableKali sets the "kali" field if the given value is not nil.
-func (_u *CredentialUpdateOne) SetNillableKali(v *string) *CredentialUpdateOne {
-	if v != nil {
-		_u.SetKali(*v)
-	}
+// AppendServices appends value to the "services" field.
+func (_u *CredentialUpdateOne) AppendServices(v []schema.ServiceCredential) *CredentialUpdateOne {
+	_u.mutation.AppendServices(v)
 	return _u
 }
 
@@ -518,32 +304,16 @@ func (_u *CredentialUpdateOne) sqlSave(ctx context.Context) (_node *Credential, 
 			}
 		}
 	}
-	if value, ok := _u.mutation.Compsole(); ok {
-		_spec.SetField(credential.FieldCompsole, field.TypeString, value)
+	if value, ok := _u.mutation.Password(); ok {
+		_spec.SetField(credential.FieldPassword, field.TypeString, value)
 	}
-	if value, ok := _u.mutation.Scorify(); ok {
-		_spec.SetField(credential.FieldScorify, field.TypeString, value)
+	if value, ok := _u.mutation.Services(); ok {
+		_spec.SetField(credential.FieldServices, field.TypeJSON, value)
 	}
-	if value, ok := _u.mutation.Authentik(); ok {
-		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Store(); ok {
-		_spec.SetField(credential.FieldStore, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Ctfd(); ok {
-		_spec.SetField(credential.FieldCtfd, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Wazuh(); ok {
-		_spec.SetField(credential.FieldWazuh, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Pfsense(); ok {
-		_spec.SetField(credential.FieldPfsense, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Default(); ok {
-		_spec.SetField(credential.FieldDefault, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.Kali(); ok {
-		_spec.SetField(credential.FieldKali, field.TypeString, value)
+	if value, ok := _u.mutation.AppendedServices(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, credential.FieldServices, value)
+		})
 	}
 	if _u.mutation.TeamCleared() {
 		edge := &sqlgraph.EdgeSpec{

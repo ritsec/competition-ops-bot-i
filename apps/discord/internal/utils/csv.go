@@ -1,53 +1,59 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/gocarina/gocsv"
 )
 
-// HandleCSV takes a generic struct with CSV tags and a URL to the
-// CSV download, and returns the unmarshalled data.
-func HandleCSV[T any](URL string) ([]*T, error) {
-	// Create temp file
-	filename := fmt.Sprintf("download-%s.csv", time.Now())
-	temp, err := os.CreateTemp("/tmp", filename)
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(temp.Name())
-	defer temp.Close()
+// maxCSVSize limits how much of an uploaded CSV is read into memory
+const maxCSVSize = 10 << 20 // 10 MiB
 
-	// Download file
+// downloadCSV fetches the CSV at URL and returns its contents
+func downloadCSV(URL string) ([]byte, error) {
 	resp, err := http.Get(URL)
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("error getting file")
-	}
 	defer resp.Body.Close()
 
-	// Copy file content to temp file
-	_, err = io.Copy(temp, resp.Body)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("error getting file: %s", resp.Status)
 	}
 
-	// Set offset to beginning of file
-	if _, err := temp.Seek(0, 0); err != nil {
+	return io.ReadAll(io.LimitReader(resp.Body, maxCSVSize))
+}
+
+// HandleCSV takes a generic struct with CSV tags and a URL to the
+// CSV download, and returns the unmarshalled data.
+func HandleCSV[T any](URL string) ([]*T, error) {
+	content, err := downloadCSV(URL)
+	if err != nil {
 		return nil, err
 	}
 
 	// Unmarshal file based on Entry struct
 	var data []*T
-	if unmarshalError := gocsv.UnmarshalFile(temp, &data); unmarshalError != nil {
-		panic(unmarshalError)
+	if err := gocsv.UnmarshalBytes(content, &data); err != nil {
+		return nil, err
 	}
 
 	return data, nil
+}
+
+// ReadCSV returns the raw rows of the CSV at URL. Use this instead of
+// HandleCSV when the columns can't be matched by header name.
+func ReadCSV(URL string) ([][]string, error) {
+	content, err := downloadCSV(URL)
+	if err != nil {
+		return nil, err
+	}
+
+	reader := csv.NewReader(bytes.NewReader(content))
+	reader.FieldsPerRecord = -1 // Allow rows of different lengths
+	return reader.ReadAll()
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/ritsec/competition-ops-bot-i/ent/key"
 	"github.com/ritsec/competition-ops-bot-i/ent/predicate"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
+	"github.com/ritsec/competition-ops-bot-i/ent/schema"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
 )
@@ -371,24 +372,18 @@ func (m *ChannelMutation) ResetEdge(name string) error {
 // CredentialMutation represents an operation that mutates the Credential nodes in the graph.
 type CredentialMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	compsole      *string
-	scorify       *string
-	authentik     *string
-	store         *string
-	ctfd          *string
-	wazuh         *string
-	pfsense       *string
-	_default      *string
-	kali          *string
-	clearedFields map[string]struct{}
-	team          *int
-	clearedteam   bool
-	done          bool
-	oldValue      func(context.Context) (*Credential, error)
-	predicates    []predicate.Credential
+	op             Op
+	typ            string
+	id             *int
+	password       *string
+	services       *[]schema.ServiceCredential
+	appendservices []schema.ServiceCredential
+	clearedFields  map[string]struct{}
+	team           *int
+	clearedteam    bool
+	done           bool
+	oldValue       func(context.Context) (*Credential, error)
+	predicates     []predicate.Credential
 }
 
 var _ ent.Mutation = (*CredentialMutation)(nil)
@@ -489,328 +484,91 @@ func (m *CredentialMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
-// SetCompsole sets the "compsole" field.
-func (m *CredentialMutation) SetCompsole(s string) {
-	m.compsole = &s
+// SetPassword sets the "password" field.
+func (m *CredentialMutation) SetPassword(s string) {
+	m.password = &s
 }
 
-// Compsole returns the value of the "compsole" field in the mutation.
-func (m *CredentialMutation) Compsole() (r string, exists bool) {
-	v := m.compsole
+// Password returns the value of the "password" field in the mutation.
+func (m *CredentialMutation) Password() (r string, exists bool) {
+	v := m.password
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCompsole returns the old "compsole" field's value of the Credential entity.
+// OldPassword returns the old "password" field's value of the Credential entity.
 // If the Credential object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldCompsole(ctx context.Context) (v string, err error) {
+func (m *CredentialMutation) OldPassword(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCompsole is only allowed on UpdateOne operations")
+		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCompsole requires an ID field in the mutation")
+		return v, errors.New("OldPassword requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCompsole: %w", err)
+		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
 	}
-	return oldValue.Compsole, nil
+	return oldValue.Password, nil
 }
 
-// ResetCompsole resets all changes to the "compsole" field.
-func (m *CredentialMutation) ResetCompsole() {
-	m.compsole = nil
+// ResetPassword resets all changes to the "password" field.
+func (m *CredentialMutation) ResetPassword() {
+	m.password = nil
 }
 
-// SetScorify sets the "scorify" field.
-func (m *CredentialMutation) SetScorify(s string) {
-	m.scorify = &s
+// SetServices sets the "services" field.
+func (m *CredentialMutation) SetServices(sc []schema.ServiceCredential) {
+	m.services = &sc
+	m.appendservices = nil
 }
 
-// Scorify returns the value of the "scorify" field in the mutation.
-func (m *CredentialMutation) Scorify() (r string, exists bool) {
-	v := m.scorify
+// Services returns the value of the "services" field in the mutation.
+func (m *CredentialMutation) Services() (r []schema.ServiceCredential, exists bool) {
+	v := m.services
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldScorify returns the old "scorify" field's value of the Credential entity.
+// OldServices returns the old "services" field's value of the Credential entity.
 // If the Credential object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldScorify(ctx context.Context) (v string, err error) {
+func (m *CredentialMutation) OldServices(ctx context.Context) (v []schema.ServiceCredential, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScorify is only allowed on UpdateOne operations")
+		return v, errors.New("OldServices is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScorify requires an ID field in the mutation")
+		return v, errors.New("OldServices requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScorify: %w", err)
+		return v, fmt.Errorf("querying old value for OldServices: %w", err)
 	}
-	return oldValue.Scorify, nil
+	return oldValue.Services, nil
 }
 
-// ResetScorify resets all changes to the "scorify" field.
-func (m *CredentialMutation) ResetScorify() {
-	m.scorify = nil
+// AppendServices adds sc to the "services" field.
+func (m *CredentialMutation) AppendServices(sc []schema.ServiceCredential) {
+	m.appendservices = append(m.appendservices, sc...)
 }
 
-// SetAuthentik sets the "authentik" field.
-func (m *CredentialMutation) SetAuthentik(s string) {
-	m.authentik = &s
+// AppendedServices returns the list of values that were appended to the "services" field in this mutation.
+func (m *CredentialMutation) AppendedServices() ([]schema.ServiceCredential, bool) {
+	if len(m.appendservices) == 0 {
+		return nil, false
+	}
+	return m.appendservices, true
 }
 
-// Authentik returns the value of the "authentik" field in the mutation.
-func (m *CredentialMutation) Authentik() (r string, exists bool) {
-	v := m.authentik
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldAuthentik returns the old "authentik" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldAuthentik(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAuthentik is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAuthentik requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAuthentik: %w", err)
-	}
-	return oldValue.Authentik, nil
-}
-
-// ResetAuthentik resets all changes to the "authentik" field.
-func (m *CredentialMutation) ResetAuthentik() {
-	m.authentik = nil
-}
-
-// SetStore sets the "store" field.
-func (m *CredentialMutation) SetStore(s string) {
-	m.store = &s
-}
-
-// Store returns the value of the "store" field in the mutation.
-func (m *CredentialMutation) Store() (r string, exists bool) {
-	v := m.store
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStore returns the old "store" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldStore(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStore is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStore requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStore: %w", err)
-	}
-	return oldValue.Store, nil
-}
-
-// ResetStore resets all changes to the "store" field.
-func (m *CredentialMutation) ResetStore() {
-	m.store = nil
-}
-
-// SetCtfd sets the "ctfd" field.
-func (m *CredentialMutation) SetCtfd(s string) {
-	m.ctfd = &s
-}
-
-// Ctfd returns the value of the "ctfd" field in the mutation.
-func (m *CredentialMutation) Ctfd() (r string, exists bool) {
-	v := m.ctfd
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCtfd returns the old "ctfd" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldCtfd(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCtfd is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCtfd requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCtfd: %w", err)
-	}
-	return oldValue.Ctfd, nil
-}
-
-// ResetCtfd resets all changes to the "ctfd" field.
-func (m *CredentialMutation) ResetCtfd() {
-	m.ctfd = nil
-}
-
-// SetWazuh sets the "wazuh" field.
-func (m *CredentialMutation) SetWazuh(s string) {
-	m.wazuh = &s
-}
-
-// Wazuh returns the value of the "wazuh" field in the mutation.
-func (m *CredentialMutation) Wazuh() (r string, exists bool) {
-	v := m.wazuh
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWazuh returns the old "wazuh" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldWazuh(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWazuh is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWazuh requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWazuh: %w", err)
-	}
-	return oldValue.Wazuh, nil
-}
-
-// ResetWazuh resets all changes to the "wazuh" field.
-func (m *CredentialMutation) ResetWazuh() {
-	m.wazuh = nil
-}
-
-// SetPfsense sets the "pfsense" field.
-func (m *CredentialMutation) SetPfsense(s string) {
-	m.pfsense = &s
-}
-
-// Pfsense returns the value of the "pfsense" field in the mutation.
-func (m *CredentialMutation) Pfsense() (r string, exists bool) {
-	v := m.pfsense
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPfsense returns the old "pfsense" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldPfsense(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPfsense is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPfsense requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPfsense: %w", err)
-	}
-	return oldValue.Pfsense, nil
-}
-
-// ResetPfsense resets all changes to the "pfsense" field.
-func (m *CredentialMutation) ResetPfsense() {
-	m.pfsense = nil
-}
-
-// SetDefault sets the "default" field.
-func (m *CredentialMutation) SetDefault(s string) {
-	m._default = &s
-}
-
-// Default returns the value of the "default" field in the mutation.
-func (m *CredentialMutation) Default() (r string, exists bool) {
-	v := m._default
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDefault returns the old "default" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldDefault(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDefault is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDefault requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDefault: %w", err)
-	}
-	return oldValue.Default, nil
-}
-
-// ResetDefault resets all changes to the "default" field.
-func (m *CredentialMutation) ResetDefault() {
-	m._default = nil
-}
-
-// SetKali sets the "kali" field.
-func (m *CredentialMutation) SetKali(s string) {
-	m.kali = &s
-}
-
-// Kali returns the value of the "kali" field in the mutation.
-func (m *CredentialMutation) Kali() (r string, exists bool) {
-	v := m.kali
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldKali returns the old "kali" field's value of the Credential entity.
-// If the Credential object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CredentialMutation) OldKali(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKali is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKali requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKali: %w", err)
-	}
-	return oldValue.Kali, nil
-}
-
-// ResetKali resets all changes to the "kali" field.
-func (m *CredentialMutation) ResetKali() {
-	m.kali = nil
+// ResetServices resets all changes to the "services" field.
+func (m *CredentialMutation) ResetServices() {
+	m.services = nil
+	m.appendservices = nil
 }
 
 // SetTeamID sets the "team" edge to the Team entity by id.
@@ -886,33 +644,12 @@ func (m *CredentialMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CredentialMutation) Fields() []string {
-	fields := make([]string, 0, 9)
-	if m.compsole != nil {
-		fields = append(fields, credential.FieldCompsole)
+	fields := make([]string, 0, 2)
+	if m.password != nil {
+		fields = append(fields, credential.FieldPassword)
 	}
-	if m.scorify != nil {
-		fields = append(fields, credential.FieldScorify)
-	}
-	if m.authentik != nil {
-		fields = append(fields, credential.FieldAuthentik)
-	}
-	if m.store != nil {
-		fields = append(fields, credential.FieldStore)
-	}
-	if m.ctfd != nil {
-		fields = append(fields, credential.FieldCtfd)
-	}
-	if m.wazuh != nil {
-		fields = append(fields, credential.FieldWazuh)
-	}
-	if m.pfsense != nil {
-		fields = append(fields, credential.FieldPfsense)
-	}
-	if m._default != nil {
-		fields = append(fields, credential.FieldDefault)
-	}
-	if m.kali != nil {
-		fields = append(fields, credential.FieldKali)
+	if m.services != nil {
+		fields = append(fields, credential.FieldServices)
 	}
 	return fields
 }
@@ -922,24 +659,10 @@ func (m *CredentialMutation) Fields() []string {
 // schema.
 func (m *CredentialMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case credential.FieldCompsole:
-		return m.Compsole()
-	case credential.FieldScorify:
-		return m.Scorify()
-	case credential.FieldAuthentik:
-		return m.Authentik()
-	case credential.FieldStore:
-		return m.Store()
-	case credential.FieldCtfd:
-		return m.Ctfd()
-	case credential.FieldWazuh:
-		return m.Wazuh()
-	case credential.FieldPfsense:
-		return m.Pfsense()
-	case credential.FieldDefault:
-		return m.Default()
-	case credential.FieldKali:
-		return m.Kali()
+	case credential.FieldPassword:
+		return m.Password()
+	case credential.FieldServices:
+		return m.Services()
 	}
 	return nil, false
 }
@@ -949,24 +672,10 @@ func (m *CredentialMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *CredentialMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case credential.FieldCompsole:
-		return m.OldCompsole(ctx)
-	case credential.FieldScorify:
-		return m.OldScorify(ctx)
-	case credential.FieldAuthentik:
-		return m.OldAuthentik(ctx)
-	case credential.FieldStore:
-		return m.OldStore(ctx)
-	case credential.FieldCtfd:
-		return m.OldCtfd(ctx)
-	case credential.FieldWazuh:
-		return m.OldWazuh(ctx)
-	case credential.FieldPfsense:
-		return m.OldPfsense(ctx)
-	case credential.FieldDefault:
-		return m.OldDefault(ctx)
-	case credential.FieldKali:
-		return m.OldKali(ctx)
+	case credential.FieldPassword:
+		return m.OldPassword(ctx)
+	case credential.FieldServices:
+		return m.OldServices(ctx)
 	}
 	return nil, fmt.Errorf("unknown Credential field %s", name)
 }
@@ -976,68 +685,19 @@ func (m *CredentialMutation) OldField(ctx context.Context, name string) (ent.Val
 // type.
 func (m *CredentialMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case credential.FieldCompsole:
+	case credential.FieldPassword:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCompsole(v)
+		m.SetPassword(v)
 		return nil
-	case credential.FieldScorify:
-		v, ok := value.(string)
+	case credential.FieldServices:
+		v, ok := value.([]schema.ServiceCredential)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetScorify(v)
-		return nil
-	case credential.FieldAuthentik:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAuthentik(v)
-		return nil
-	case credential.FieldStore:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStore(v)
-		return nil
-	case credential.FieldCtfd:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCtfd(v)
-		return nil
-	case credential.FieldWazuh:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWazuh(v)
-		return nil
-	case credential.FieldPfsense:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPfsense(v)
-		return nil
-	case credential.FieldDefault:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDefault(v)
-		return nil
-	case credential.FieldKali:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetKali(v)
+		m.SetServices(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Credential field %s", name)
@@ -1088,32 +748,11 @@ func (m *CredentialMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *CredentialMutation) ResetField(name string) error {
 	switch name {
-	case credential.FieldCompsole:
-		m.ResetCompsole()
+	case credential.FieldPassword:
+		m.ResetPassword()
 		return nil
-	case credential.FieldScorify:
-		m.ResetScorify()
-		return nil
-	case credential.FieldAuthentik:
-		m.ResetAuthentik()
-		return nil
-	case credential.FieldStore:
-		m.ResetStore()
-		return nil
-	case credential.FieldCtfd:
-		m.ResetCtfd()
-		return nil
-	case credential.FieldWazuh:
-		m.ResetWazuh()
-		return nil
-	case credential.FieldPfsense:
-		m.ResetPfsense()
-		return nil
-	case credential.FieldDefault:
-		m.ResetDefault()
-		return nil
-	case credential.FieldKali:
-		m.ResetKali()
+	case credential.FieldServices:
+		m.ResetServices()
 		return nil
 	}
 	return fmt.Errorf("unknown Credential field %s", name)

@@ -53,634 +53,74 @@ func IDLTE(id int) predicate.Credential {
 	return predicate.Credential(sql.FieldLTE(FieldID, id))
 }
 
-// Compsole applies equality check predicate on the "compsole" field. It's identical to CompsoleEQ.
-func Compsole(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldCompsole, v))
+// Password applies equality check predicate on the "password" field. It's identical to PasswordEQ.
+func Password(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldEQ(FieldPassword, v))
 }
 
-// Scorify applies equality check predicate on the "scorify" field. It's identical to ScorifyEQ.
-func Scorify(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldScorify, v))
+// PasswordEQ applies the EQ predicate on the "password" field.
+func PasswordEQ(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldEQ(FieldPassword, v))
 }
 
-// Authentik applies equality check predicate on the "authentik" field. It's identical to AuthentikEQ.
-func Authentik(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldAuthentik, v))
+// PasswordNEQ applies the NEQ predicate on the "password" field.
+func PasswordNEQ(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldNEQ(FieldPassword, v))
 }
 
-// Store applies equality check predicate on the "store" field. It's identical to StoreEQ.
-func Store(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldStore, v))
+// PasswordIn applies the In predicate on the "password" field.
+func PasswordIn(vs ...string) predicate.Credential {
+	return predicate.Credential(sql.FieldIn(FieldPassword, vs...))
 }
 
-// Ctfd applies equality check predicate on the "ctfd" field. It's identical to CtfdEQ.
-func Ctfd(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldCtfd, v))
+// PasswordNotIn applies the NotIn predicate on the "password" field.
+func PasswordNotIn(vs ...string) predicate.Credential {
+	return predicate.Credential(sql.FieldNotIn(FieldPassword, vs...))
 }
 
-// Wazuh applies equality check predicate on the "wazuh" field. It's identical to WazuhEQ.
-func Wazuh(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldWazuh, v))
+// PasswordGT applies the GT predicate on the "password" field.
+func PasswordGT(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldGT(FieldPassword, v))
 }
 
-// Pfsense applies equality check predicate on the "pfsense" field. It's identical to PfsenseEQ.
-func Pfsense(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldPfsense, v))
+// PasswordGTE applies the GTE predicate on the "password" field.
+func PasswordGTE(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldGTE(FieldPassword, v))
 }
 
-// Default applies equality check predicate on the "default" field. It's identical to DefaultEQ.
-func Default(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldDefault, v))
+// PasswordLT applies the LT predicate on the "password" field.
+func PasswordLT(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldLT(FieldPassword, v))
 }
 
-// Kali applies equality check predicate on the "kali" field. It's identical to KaliEQ.
-func Kali(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldKali, v))
+// PasswordLTE applies the LTE predicate on the "password" field.
+func PasswordLTE(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldLTE(FieldPassword, v))
 }
 
-// CompsoleEQ applies the EQ predicate on the "compsole" field.
-func CompsoleEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldCompsole, v))
+// PasswordContains applies the Contains predicate on the "password" field.
+func PasswordContains(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldContains(FieldPassword, v))
 }
 
-// CompsoleNEQ applies the NEQ predicate on the "compsole" field.
-func CompsoleNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldCompsole, v))
+// PasswordHasPrefix applies the HasPrefix predicate on the "password" field.
+func PasswordHasPrefix(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldHasPrefix(FieldPassword, v))
 }
 
-// CompsoleIn applies the In predicate on the "compsole" field.
-func CompsoleIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldCompsole, vs...))
+// PasswordHasSuffix applies the HasSuffix predicate on the "password" field.
+func PasswordHasSuffix(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldHasSuffix(FieldPassword, v))
 }
 
-// CompsoleNotIn applies the NotIn predicate on the "compsole" field.
-func CompsoleNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldCompsole, vs...))
+// PasswordEqualFold applies the EqualFold predicate on the "password" field.
+func PasswordEqualFold(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldEqualFold(FieldPassword, v))
 }
 
-// CompsoleGT applies the GT predicate on the "compsole" field.
-func CompsoleGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldCompsole, v))
-}
-
-// CompsoleGTE applies the GTE predicate on the "compsole" field.
-func CompsoleGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldCompsole, v))
-}
-
-// CompsoleLT applies the LT predicate on the "compsole" field.
-func CompsoleLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldCompsole, v))
-}
-
-// CompsoleLTE applies the LTE predicate on the "compsole" field.
-func CompsoleLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldCompsole, v))
-}
-
-// CompsoleContains applies the Contains predicate on the "compsole" field.
-func CompsoleContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldCompsole, v))
-}
-
-// CompsoleHasPrefix applies the HasPrefix predicate on the "compsole" field.
-func CompsoleHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldCompsole, v))
-}
-
-// CompsoleHasSuffix applies the HasSuffix predicate on the "compsole" field.
-func CompsoleHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldCompsole, v))
-}
-
-// CompsoleEqualFold applies the EqualFold predicate on the "compsole" field.
-func CompsoleEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldCompsole, v))
-}
-
-// CompsoleContainsFold applies the ContainsFold predicate on the "compsole" field.
-func CompsoleContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldCompsole, v))
-}
-
-// ScorifyEQ applies the EQ predicate on the "scorify" field.
-func ScorifyEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldScorify, v))
-}
-
-// ScorifyNEQ applies the NEQ predicate on the "scorify" field.
-func ScorifyNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldScorify, v))
-}
-
-// ScorifyIn applies the In predicate on the "scorify" field.
-func ScorifyIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldScorify, vs...))
-}
-
-// ScorifyNotIn applies the NotIn predicate on the "scorify" field.
-func ScorifyNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldScorify, vs...))
-}
-
-// ScorifyGT applies the GT predicate on the "scorify" field.
-func ScorifyGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldScorify, v))
-}
-
-// ScorifyGTE applies the GTE predicate on the "scorify" field.
-func ScorifyGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldScorify, v))
-}
-
-// ScorifyLT applies the LT predicate on the "scorify" field.
-func ScorifyLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldScorify, v))
-}
-
-// ScorifyLTE applies the LTE predicate on the "scorify" field.
-func ScorifyLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldScorify, v))
-}
-
-// ScorifyContains applies the Contains predicate on the "scorify" field.
-func ScorifyContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldScorify, v))
-}
-
-// ScorifyHasPrefix applies the HasPrefix predicate on the "scorify" field.
-func ScorifyHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldScorify, v))
-}
-
-// ScorifyHasSuffix applies the HasSuffix predicate on the "scorify" field.
-func ScorifyHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldScorify, v))
-}
-
-// ScorifyEqualFold applies the EqualFold predicate on the "scorify" field.
-func ScorifyEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldScorify, v))
-}
-
-// ScorifyContainsFold applies the ContainsFold predicate on the "scorify" field.
-func ScorifyContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldScorify, v))
-}
-
-// AuthentikEQ applies the EQ predicate on the "authentik" field.
-func AuthentikEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldAuthentik, v))
-}
-
-// AuthentikNEQ applies the NEQ predicate on the "authentik" field.
-func AuthentikNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldAuthentik, v))
-}
-
-// AuthentikIn applies the In predicate on the "authentik" field.
-func AuthentikIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldAuthentik, vs...))
-}
-
-// AuthentikNotIn applies the NotIn predicate on the "authentik" field.
-func AuthentikNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldAuthentik, vs...))
-}
-
-// AuthentikGT applies the GT predicate on the "authentik" field.
-func AuthentikGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldAuthentik, v))
-}
-
-// AuthentikGTE applies the GTE predicate on the "authentik" field.
-func AuthentikGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldAuthentik, v))
-}
-
-// AuthentikLT applies the LT predicate on the "authentik" field.
-func AuthentikLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldAuthentik, v))
-}
-
-// AuthentikLTE applies the LTE predicate on the "authentik" field.
-func AuthentikLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldAuthentik, v))
-}
-
-// AuthentikContains applies the Contains predicate on the "authentik" field.
-func AuthentikContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldAuthentik, v))
-}
-
-// AuthentikHasPrefix applies the HasPrefix predicate on the "authentik" field.
-func AuthentikHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldAuthentik, v))
-}
-
-// AuthentikHasSuffix applies the HasSuffix predicate on the "authentik" field.
-func AuthentikHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldAuthentik, v))
-}
-
-// AuthentikEqualFold applies the EqualFold predicate on the "authentik" field.
-func AuthentikEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldAuthentik, v))
-}
-
-// AuthentikContainsFold applies the ContainsFold predicate on the "authentik" field.
-func AuthentikContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldAuthentik, v))
-}
-
-// StoreEQ applies the EQ predicate on the "store" field.
-func StoreEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldStore, v))
-}
-
-// StoreNEQ applies the NEQ predicate on the "store" field.
-func StoreNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldStore, v))
-}
-
-// StoreIn applies the In predicate on the "store" field.
-func StoreIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldStore, vs...))
-}
-
-// StoreNotIn applies the NotIn predicate on the "store" field.
-func StoreNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldStore, vs...))
-}
-
-// StoreGT applies the GT predicate on the "store" field.
-func StoreGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldStore, v))
-}
-
-// StoreGTE applies the GTE predicate on the "store" field.
-func StoreGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldStore, v))
-}
-
-// StoreLT applies the LT predicate on the "store" field.
-func StoreLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldStore, v))
-}
-
-// StoreLTE applies the LTE predicate on the "store" field.
-func StoreLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldStore, v))
-}
-
-// StoreContains applies the Contains predicate on the "store" field.
-func StoreContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldStore, v))
-}
-
-// StoreHasPrefix applies the HasPrefix predicate on the "store" field.
-func StoreHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldStore, v))
-}
-
-// StoreHasSuffix applies the HasSuffix predicate on the "store" field.
-func StoreHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldStore, v))
-}
-
-// StoreEqualFold applies the EqualFold predicate on the "store" field.
-func StoreEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldStore, v))
-}
-
-// StoreContainsFold applies the ContainsFold predicate on the "store" field.
-func StoreContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldStore, v))
-}
-
-// CtfdEQ applies the EQ predicate on the "ctfd" field.
-func CtfdEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldCtfd, v))
-}
-
-// CtfdNEQ applies the NEQ predicate on the "ctfd" field.
-func CtfdNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldCtfd, v))
-}
-
-// CtfdIn applies the In predicate on the "ctfd" field.
-func CtfdIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldCtfd, vs...))
-}
-
-// CtfdNotIn applies the NotIn predicate on the "ctfd" field.
-func CtfdNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldCtfd, vs...))
-}
-
-// CtfdGT applies the GT predicate on the "ctfd" field.
-func CtfdGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldCtfd, v))
-}
-
-// CtfdGTE applies the GTE predicate on the "ctfd" field.
-func CtfdGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldCtfd, v))
-}
-
-// CtfdLT applies the LT predicate on the "ctfd" field.
-func CtfdLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldCtfd, v))
-}
-
-// CtfdLTE applies the LTE predicate on the "ctfd" field.
-func CtfdLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldCtfd, v))
-}
-
-// CtfdContains applies the Contains predicate on the "ctfd" field.
-func CtfdContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldCtfd, v))
-}
-
-// CtfdHasPrefix applies the HasPrefix predicate on the "ctfd" field.
-func CtfdHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldCtfd, v))
-}
-
-// CtfdHasSuffix applies the HasSuffix predicate on the "ctfd" field.
-func CtfdHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldCtfd, v))
-}
-
-// CtfdEqualFold applies the EqualFold predicate on the "ctfd" field.
-func CtfdEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldCtfd, v))
-}
-
-// CtfdContainsFold applies the ContainsFold predicate on the "ctfd" field.
-func CtfdContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldCtfd, v))
-}
-
-// WazuhEQ applies the EQ predicate on the "wazuh" field.
-func WazuhEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldWazuh, v))
-}
-
-// WazuhNEQ applies the NEQ predicate on the "wazuh" field.
-func WazuhNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldWazuh, v))
-}
-
-// WazuhIn applies the In predicate on the "wazuh" field.
-func WazuhIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldWazuh, vs...))
-}
-
-// WazuhNotIn applies the NotIn predicate on the "wazuh" field.
-func WazuhNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldWazuh, vs...))
-}
-
-// WazuhGT applies the GT predicate on the "wazuh" field.
-func WazuhGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldWazuh, v))
-}
-
-// WazuhGTE applies the GTE predicate on the "wazuh" field.
-func WazuhGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldWazuh, v))
-}
-
-// WazuhLT applies the LT predicate on the "wazuh" field.
-func WazuhLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldWazuh, v))
-}
-
-// WazuhLTE applies the LTE predicate on the "wazuh" field.
-func WazuhLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldWazuh, v))
-}
-
-// WazuhContains applies the Contains predicate on the "wazuh" field.
-func WazuhContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldWazuh, v))
-}
-
-// WazuhHasPrefix applies the HasPrefix predicate on the "wazuh" field.
-func WazuhHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldWazuh, v))
-}
-
-// WazuhHasSuffix applies the HasSuffix predicate on the "wazuh" field.
-func WazuhHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldWazuh, v))
-}
-
-// WazuhEqualFold applies the EqualFold predicate on the "wazuh" field.
-func WazuhEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldWazuh, v))
-}
-
-// WazuhContainsFold applies the ContainsFold predicate on the "wazuh" field.
-func WazuhContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldWazuh, v))
-}
-
-// PfsenseEQ applies the EQ predicate on the "pfsense" field.
-func PfsenseEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldPfsense, v))
-}
-
-// PfsenseNEQ applies the NEQ predicate on the "pfsense" field.
-func PfsenseNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldPfsense, v))
-}
-
-// PfsenseIn applies the In predicate on the "pfsense" field.
-func PfsenseIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldPfsense, vs...))
-}
-
-// PfsenseNotIn applies the NotIn predicate on the "pfsense" field.
-func PfsenseNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldPfsense, vs...))
-}
-
-// PfsenseGT applies the GT predicate on the "pfsense" field.
-func PfsenseGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldPfsense, v))
-}
-
-// PfsenseGTE applies the GTE predicate on the "pfsense" field.
-func PfsenseGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldPfsense, v))
-}
-
-// PfsenseLT applies the LT predicate on the "pfsense" field.
-func PfsenseLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldPfsense, v))
-}
-
-// PfsenseLTE applies the LTE predicate on the "pfsense" field.
-func PfsenseLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldPfsense, v))
-}
-
-// PfsenseContains applies the Contains predicate on the "pfsense" field.
-func PfsenseContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldPfsense, v))
-}
-
-// PfsenseHasPrefix applies the HasPrefix predicate on the "pfsense" field.
-func PfsenseHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldPfsense, v))
-}
-
-// PfsenseHasSuffix applies the HasSuffix predicate on the "pfsense" field.
-func PfsenseHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldPfsense, v))
-}
-
-// PfsenseEqualFold applies the EqualFold predicate on the "pfsense" field.
-func PfsenseEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldPfsense, v))
-}
-
-// PfsenseContainsFold applies the ContainsFold predicate on the "pfsense" field.
-func PfsenseContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldPfsense, v))
-}
-
-// DefaultEQ applies the EQ predicate on the "default" field.
-func DefaultEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldDefault, v))
-}
-
-// DefaultNEQ applies the NEQ predicate on the "default" field.
-func DefaultNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldDefault, v))
-}
-
-// DefaultIn applies the In predicate on the "default" field.
-func DefaultIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldDefault, vs...))
-}
-
-// DefaultNotIn applies the NotIn predicate on the "default" field.
-func DefaultNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldDefault, vs...))
-}
-
-// DefaultGT applies the GT predicate on the "default" field.
-func DefaultGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldDefault, v))
-}
-
-// DefaultGTE applies the GTE predicate on the "default" field.
-func DefaultGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldDefault, v))
-}
-
-// DefaultLT applies the LT predicate on the "default" field.
-func DefaultLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldDefault, v))
-}
-
-// DefaultLTE applies the LTE predicate on the "default" field.
-func DefaultLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldDefault, v))
-}
-
-// DefaultContains applies the Contains predicate on the "default" field.
-func DefaultContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldDefault, v))
-}
-
-// DefaultHasPrefix applies the HasPrefix predicate on the "default" field.
-func DefaultHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldDefault, v))
-}
-
-// DefaultHasSuffix applies the HasSuffix predicate on the "default" field.
-func DefaultHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldDefault, v))
-}
-
-// DefaultEqualFold applies the EqualFold predicate on the "default" field.
-func DefaultEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldDefault, v))
-}
-
-// DefaultContainsFold applies the ContainsFold predicate on the "default" field.
-func DefaultContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldDefault, v))
-}
-
-// KaliEQ applies the EQ predicate on the "kali" field.
-func KaliEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEQ(FieldKali, v))
-}
-
-// KaliNEQ applies the NEQ predicate on the "kali" field.
-func KaliNEQ(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldNEQ(FieldKali, v))
-}
-
-// KaliIn applies the In predicate on the "kali" field.
-func KaliIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldIn(FieldKali, vs...))
-}
-
-// KaliNotIn applies the NotIn predicate on the "kali" field.
-func KaliNotIn(vs ...string) predicate.Credential {
-	return predicate.Credential(sql.FieldNotIn(FieldKali, vs...))
-}
-
-// KaliGT applies the GT predicate on the "kali" field.
-func KaliGT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGT(FieldKali, v))
-}
-
-// KaliGTE applies the GTE predicate on the "kali" field.
-func KaliGTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldGTE(FieldKali, v))
-}
-
-// KaliLT applies the LT predicate on the "kali" field.
-func KaliLT(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLT(FieldKali, v))
-}
-
-// KaliLTE applies the LTE predicate on the "kali" field.
-func KaliLTE(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldLTE(FieldKali, v))
-}
-
-// KaliContains applies the Contains predicate on the "kali" field.
-func KaliContains(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContains(FieldKali, v))
-}
-
-// KaliHasPrefix applies the HasPrefix predicate on the "kali" field.
-func KaliHasPrefix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasPrefix(FieldKali, v))
-}
-
-// KaliHasSuffix applies the HasSuffix predicate on the "kali" field.
-func KaliHasSuffix(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldHasSuffix(FieldKali, v))
-}
-
-// KaliEqualFold applies the EqualFold predicate on the "kali" field.
-func KaliEqualFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldEqualFold(FieldKali, v))
-}
-
-// KaliContainsFold applies the ContainsFold predicate on the "kali" field.
-func KaliContainsFold(v string) predicate.Credential {
-	return predicate.Credential(sql.FieldContainsFold(FieldKali, v))
+// PasswordContainsFold applies the ContainsFold predicate on the "password" field.
+func PasswordContainsFold(v string) predicate.Credential {
+	return predicate.Credential(sql.FieldContainsFold(FieldPassword, v))
 }
 
 // HasTeam applies the HasEdge predicate on the "team" edge.

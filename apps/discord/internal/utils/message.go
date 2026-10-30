@@ -2,59 +2,46 @@ package utils
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent"
 )
 
+// maxEmbedFields is the most fields Discord allows in one embed
+const maxEmbedFields = 25
+
+// MessageCreds builds the embed sent to a team with a field for each of
+// their service logins
 func MessageCreds(num int, creds *ent.Credential) *discordgo.MessageEmbed {
-	compServices := fmt.Sprintf("For your convenience, [Authentik](https://auth.ists.io), "+
-		"[Compsole](https://compsole.ritsec.cloud), "+
-		"Scorify (https://scoring.ists.space), "+
-		"[Store](https://store.ists.space), and "+
-		"[CTFd](https://ctf.ists.space) share a username and password:\n%s", formatServiceCred(creds.Authentik))
+	var fields []*discordgo.MessageEmbedField
+	for _, service := range creds.Services {
+		if len(fields) == maxEmbedFields {
+			break
+		}
+
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:  service.Name,
+			Value: formatServiceCred(service.Username, service.Password),
+		})
+	}
 
 	return &discordgo.MessageEmbed{
 		Title:       "🔐 Credentials 🔐",
-		Description: "Here are your teams credentials. Keep them safe!",
+		Description: fmt.Sprintf("Here are Team %d's credentials. Keep them safe!", num),
 		Color:       0x5865F2,
-		Fields: []*discordgo.MessageEmbedField{
-			{
-				Name:  "Competition Services",
-				Value: compServices,
-			},
-			{
-				Name:  "Wazuh",
-				Value: formatServiceCred(creds.Wazuh),
-			},
-			{
-				Name:  "pfSense",
-				Value: formatServiceCred(creds.Pfsense),
-			},
-			{
-				Name:  "Hosts",
-				Value: formatServiceCred(creds.Default),
-			},
-			{
-				Name:  "Kali",
-				Value: formatServiceCred(creds.Kali),
-			},
-		},
+		Fields:      fields,
 	}
 }
 
-func formatServiceCred(cred string) string {
-	creds := strings.Split(cred, ":")
-	if len(creds) == 1 {
+func formatServiceCred(username, password string) string {
+	if username == "" {
 		return fmt.Sprintf(
 			"```text\nPassword: %s\n```",
-			creds[0],
-		)
-	} else {
-		return fmt.Sprintf(
-			"```text\nUsername: %s\nPassword: %s\n```",
-			creds[0], creds[1],
+			password,
 		)
 	}
+	return fmt.Sprintf(
+		"```text\nUsername: %s\nPassword: %s\n```",
+		username, password,
+	)
 }

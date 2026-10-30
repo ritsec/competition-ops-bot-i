@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/ritsec/competition-ops-bot-i/ent/credential"
+	"github.com/ritsec/competition-ops-bot-i/ent/schema"
 	"github.com/ritsec/competition-ops-bot-i/ent/team"
 )
 
@@ -20,57 +21,15 @@ type CredentialCreate struct {
 	hooks    []Hook
 }
 
-// SetCompsole sets the "compsole" field.
-func (_c *CredentialCreate) SetCompsole(v string) *CredentialCreate {
-	_c.mutation.SetCompsole(v)
+// SetPassword sets the "password" field.
+func (_c *CredentialCreate) SetPassword(v string) *CredentialCreate {
+	_c.mutation.SetPassword(v)
 	return _c
 }
 
-// SetScorify sets the "scorify" field.
-func (_c *CredentialCreate) SetScorify(v string) *CredentialCreate {
-	_c.mutation.SetScorify(v)
-	return _c
-}
-
-// SetAuthentik sets the "authentik" field.
-func (_c *CredentialCreate) SetAuthentik(v string) *CredentialCreate {
-	_c.mutation.SetAuthentik(v)
-	return _c
-}
-
-// SetStore sets the "store" field.
-func (_c *CredentialCreate) SetStore(v string) *CredentialCreate {
-	_c.mutation.SetStore(v)
-	return _c
-}
-
-// SetCtfd sets the "ctfd" field.
-func (_c *CredentialCreate) SetCtfd(v string) *CredentialCreate {
-	_c.mutation.SetCtfd(v)
-	return _c
-}
-
-// SetWazuh sets the "wazuh" field.
-func (_c *CredentialCreate) SetWazuh(v string) *CredentialCreate {
-	_c.mutation.SetWazuh(v)
-	return _c
-}
-
-// SetPfsense sets the "pfsense" field.
-func (_c *CredentialCreate) SetPfsense(v string) *CredentialCreate {
-	_c.mutation.SetPfsense(v)
-	return _c
-}
-
-// SetDefault sets the "default" field.
-func (_c *CredentialCreate) SetDefault(v string) *CredentialCreate {
-	_c.mutation.SetDefault(v)
-	return _c
-}
-
-// SetKali sets the "kali" field.
-func (_c *CredentialCreate) SetKali(v string) *CredentialCreate {
-	_c.mutation.SetKali(v)
+// SetServices sets the "services" field.
+func (_c *CredentialCreate) SetServices(v []schema.ServiceCredential) *CredentialCreate {
+	_c.mutation.SetServices(v)
 	return _c
 }
 
@@ -127,32 +86,11 @@ func (_c *CredentialCreate) ExecX(ctx context.Context) {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *CredentialCreate) check() error {
-	if _, ok := _c.mutation.Compsole(); !ok {
-		return &ValidationError{Name: "compsole", err: errors.New(`ent: missing required field "Credential.compsole"`)}
+	if _, ok := _c.mutation.Password(); !ok {
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "Credential.password"`)}
 	}
-	if _, ok := _c.mutation.Scorify(); !ok {
-		return &ValidationError{Name: "scorify", err: errors.New(`ent: missing required field "Credential.scorify"`)}
-	}
-	if _, ok := _c.mutation.Authentik(); !ok {
-		return &ValidationError{Name: "authentik", err: errors.New(`ent: missing required field "Credential.authentik"`)}
-	}
-	if _, ok := _c.mutation.Store(); !ok {
-		return &ValidationError{Name: "store", err: errors.New(`ent: missing required field "Credential.store"`)}
-	}
-	if _, ok := _c.mutation.Ctfd(); !ok {
-		return &ValidationError{Name: "ctfd", err: errors.New(`ent: missing required field "Credential.ctfd"`)}
-	}
-	if _, ok := _c.mutation.Wazuh(); !ok {
-		return &ValidationError{Name: "wazuh", err: errors.New(`ent: missing required field "Credential.wazuh"`)}
-	}
-	if _, ok := _c.mutation.Pfsense(); !ok {
-		return &ValidationError{Name: "pfsense", err: errors.New(`ent: missing required field "Credential.pfsense"`)}
-	}
-	if _, ok := _c.mutation.Default(); !ok {
-		return &ValidationError{Name: "default", err: errors.New(`ent: missing required field "Credential.default"`)}
-	}
-	if _, ok := _c.mutation.Kali(); !ok {
-		return &ValidationError{Name: "kali", err: errors.New(`ent: missing required field "Credential.kali"`)}
+	if _, ok := _c.mutation.Services(); !ok {
+		return &ValidationError{Name: "services", err: errors.New(`ent: missing required field "Credential.services"`)}
 	}
 	return nil
 }
@@ -180,41 +118,13 @@ func (_c *CredentialCreate) createSpec() (*Credential, *sqlgraph.CreateSpec) {
 		_node = &Credential{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(credential.Table, sqlgraph.NewFieldSpec(credential.FieldID, field.TypeInt))
 	)
-	if value, ok := _c.mutation.Compsole(); ok {
-		_spec.SetField(credential.FieldCompsole, field.TypeString, value)
-		_node.Compsole = value
+	if value, ok := _c.mutation.Password(); ok {
+		_spec.SetField(credential.FieldPassword, field.TypeString, value)
+		_node.Password = value
 	}
-	if value, ok := _c.mutation.Scorify(); ok {
-		_spec.SetField(credential.FieldScorify, field.TypeString, value)
-		_node.Scorify = value
-	}
-	if value, ok := _c.mutation.Authentik(); ok {
-		_spec.SetField(credential.FieldAuthentik, field.TypeString, value)
-		_node.Authentik = value
-	}
-	if value, ok := _c.mutation.Store(); ok {
-		_spec.SetField(credential.FieldStore, field.TypeString, value)
-		_node.Store = value
-	}
-	if value, ok := _c.mutation.Ctfd(); ok {
-		_spec.SetField(credential.FieldCtfd, field.TypeString, value)
-		_node.Ctfd = value
-	}
-	if value, ok := _c.mutation.Wazuh(); ok {
-		_spec.SetField(credential.FieldWazuh, field.TypeString, value)
-		_node.Wazuh = value
-	}
-	if value, ok := _c.mutation.Pfsense(); ok {
-		_spec.SetField(credential.FieldPfsense, field.TypeString, value)
-		_node.Pfsense = value
-	}
-	if value, ok := _c.mutation.Default(); ok {
-		_spec.SetField(credential.FieldDefault, field.TypeString, value)
-		_node.Default = value
-	}
-	if value, ok := _c.mutation.Kali(); ok {
-		_spec.SetField(credential.FieldKali, field.TypeString, value)
-		_node.Kali = value
+	if value, ok := _c.mutation.Services(); ok {
+		_spec.SetField(credential.FieldServices, field.TypeJSON, value)
+		_node.Services = value
 	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
