@@ -1,18 +1,21 @@
-package bot
+package slash
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ritsec/competition-ops-bot-i/ent"
+	"github.com/ritsec/competition-ops-bot-i/internal/logging"
+	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
-func (b *Bot) Query() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
+func Query(db *ent.Client) (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
 			Name:                     "query",
 			Description:              "Query COBI data",
-			DefaultMemberPermissions: &Admin,
+			DefaultMemberPermissions: &utils.Admin,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
@@ -29,16 +32,26 @@ func (b *Bot) Query() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 			},
 		},
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			ctx, span := logging.StartSpan(
+				context.Background(),
+				"commands.slash.query:Query",
+			)
+			defer span.End()
+
 			choice := i.ApplicationCommandData().Options[0].StringValue()
 
-			initialMessage(s, i, "Querying database...")
+			if !startStatus(ctx, s, i, "Querying database...") {
+				return
+			}
+
 			switch choice {
 			case "Keys":
 				var content strings.Builder
 
-				keys, err := b.Client.Key.Query().All(b.ClientCtx)
+				keys, err := db.Key.Query().All(ctx)
 				if err != nil {
-					log.Fatal(err)
+					reportError(ctx, s, i, "Could not query keys", err)
+					return
 				}
 
 				for _, keyArray := range keys {
@@ -58,10 +71,11 @@ func (b *Bot) Query() (*discordgo.ApplicationCommand, func(s *discordgo.Session,
 					Files:   []*discordgo.File{file},
 				})
 				if err != nil {
-					updateMessage(s, i, "Failed to send file :( Please check channel or bot permissions")
+					logging.Error(ctx, fmt.Sprintf("Could not send keys file: %v", err))
+					setStatus(ctx, s, i, "Failed to send file :( Please check channel or bot permissions")
 					return
 				}
-				updateMessage(s, i, "Query complete!")
+				setStatus(ctx, s, i, "Query complete!")
 			}
 		}
 }

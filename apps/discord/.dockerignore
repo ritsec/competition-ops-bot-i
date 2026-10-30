@@ -1,2 +1,5 @@
 config/
 dev/
+.env
+docker-compose.yml
+Dockerfile

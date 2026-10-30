@@ -1,63 +1,72 @@
 package bot
 
 import (
-	"log"
-	"strings"
+	"context"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ritsec/competition-ops-bot-i/ent"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
-	"github.com/ritsec/competition-ops-bot-i/ent/user"
+	"github.com/ritsec/competition-ops-bot-i/internal/database"
+	"github.com/ritsec/competition-ops-bot-i/internal/logging"
 )
 
-func (b *Bot) Join(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
-	username := strings.ToLower(m.User.Username)
+// Join returns a handler that links a joining member to their database entry
+// and gives them their team roles
+func Join(db *ent.Client) func(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+	return func(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
+		ctx, span := logging.StartSpan(
+			context.Background(),
+			"bot.handle_join:Join",
+		)
+		defer span.End()
 
-	// Query Ent for user
-	u, err := b.Client.User.
-		Query().
-		Where(user.Username(username)).
-		Only(b.ClientCtx)
-	if err != nil {
-		log.Printf("user %s is not in database", username)
-		return // TODO: Give a user a role to see a channel where they can request roles
-	}
-
-	// Update UID of user to their Discord UID
-	u.Update().SetUID(m.User.ID).Save(b.ClientCtx)
-
-	// Get user's team
-	t, err := u.QueryTeam().All(b.ClientCtx)
-	if err != nil {
-		return
-	}
-
-	// Get roles from team
-	roles, err := t[0].QueryRole().All(b.ClientCtx)
-	if err != nil {
-		return
-	}
-
-	// Assign roles from team
-	for _, r := range roles {
-		err := b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, r.ID)
+		// Query Ent for user
+		u, err := database.GetUserFromUsername(ctx, db, m.User.Username)
 		if err != nil {
-			return
+			logging.Info(ctx, fmt.Sprintf("User %s is not in database", m.User.Username))
+			return // TODO: Give a user a role to see a channel where they can request roles
 		}
-	}
 
-	// Give lead role if user is a lead
-	if u.Lead {
-		lead, err := b.Client.Role.
-			Query().
-			Where(role.Name("Leads")).
-			Only(b.ClientCtx)
+		// Update UID of user to their Discord UID
+		u, err = db.User.UpdateOne(u).SetUID(m.User.ID).Save(ctx)
 		if err != nil {
+			logging.Error(ctx, fmt.Sprintf("Could not set UID for %s: %v", m.User.Username, err))
 			return
 		}
 
-		err = b.Session.GuildMemberRoleAdd(m.GuildID, m.User.ID, lead.ID)
+		// Get user's team
+		t, err := u.QueryTeam().Only(ctx)
 		if err != nil {
+			logging.Warn(ctx, fmt.Sprintf("Could not get team for %s: %v", m.User.Username, err))
 			return
+		}
+
+		// Get roles from team
+		roles, err := t.QueryRole().All(ctx)
+		if err != nil {
+			logging.Error(ctx, fmt.Sprintf("Could not get roles for %s: %v", m.User.Username, err))
+			return
+		}
+
+		// Give lead role if user is a lead
+		if u.Lead {
+			lead, err := db.Role.
+				Query().
+				Where(role.Name("Leads")).
+				Only(ctx)
+			if err != nil {
+				logging.Error(ctx, fmt.Sprintf("Could not get Leads role: %v", err))
+			} else {
+				roles = append(roles, lead)
+			}
+		}
+
+		// Assign roles
+		for _, r := range roles {
+			if err := s.GuildMemberRoleAdd(m.GuildID, m.User.ID, r.ID); err != nil {
+				logging.Error(ctx, fmt.Sprintf("Could not give role %s to %s: %v", r.Name, m.User.Username, err))
+			}
 		}
 	}
 }

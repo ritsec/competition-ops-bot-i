@@ -1,10 +1,15 @@
-package bot
+package slash
 
 import (
+	"context"
 	"fmt"
-	"log"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/ritsec/competition-ops-bot-i/ent"
+	"github.com/ritsec/competition-ops-bot-i/internal/config"
+	"github.com/ritsec/competition-ops-bot-i/internal/database"
+	"github.com/ritsec/competition-ops-bot-i/internal/logging"
+	"github.com/ritsec/competition-ops-bot-i/internal/utils"
 )
 
 /*
@@ -32,11 +37,11 @@ var (
 	}
 )
 
-func (b *Bot) Server() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
+func Server(db *ent.Client) (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) {
 	return &discordgo.ApplicationCommand{
 			Name:                     "server",
 			Description:              "Modify server structure",
-			DefaultMemberPermissions: &Admin,
+			DefaultMemberPermissions: &utils.Admin,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommandGroup,
@@ -53,39 +58,50 @@ func (b *Bot) Server() (*discordgo.ApplicationCommand, func(s *discordgo.Session
 			},
 		},
 		func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			ctx, span := logging.StartSpan(
+				context.Background(),
+				"commands.slash.build:Server",
+			)
+			defer span.End()
+
 			choice := i.ApplicationCommandData().Options[0].Options[0].Name
-			initialMessage(s, i, "Building server...")
+			if !startStatus(ctx, s, i, "Building server...") {
+				return
+			}
 
 			switch choice {
 			case "blue":
-				if err := b.buildBlue(); err != nil {
-					log.Println(err)
+				if err := buildBlue(ctx, s, db); err != nil {
+					reportError(ctx, s, i, "Could not build Blue Team resources", err)
+					return
 				}
 			}
 
-			updateMessage(s, i, "Finished building requested resources!")
+			setStatus(ctx, s, i, "Finished building requested resources!")
 		}
 }
 
 // buildBlue will build the universal Blue Team role, Blue Team N roles, shared channels and individual channels
-func (b *Bot) buildBlue() error {
+func buildBlue(ctx context.Context, s *discordgo.Session, db *ent.Client) error {
+	roleID := func(name string) string {
+		return database.GetRoleID(ctx, db, name)
+	}
 
 	// Check if role already exists
-	log.Println(b.getRole("Blue Team"))
-	if b.getRole("Blue Team") == "" {
+	if roleID("Blue Team") == "" {
 		//Create universal Blue role
-		blueTeamRole, err := b.Session.GuildRoleCreate(guildID, &blueTeamParams)
+		blueTeamRole, err := s.GuildRoleCreate(config.GuildID, &blueTeamParams)
 		if err != nil {
 			return err
 		}
 
-		_, err = b.Client.Role.
+		err = db.Role.
 			Create().
 			SetID(blueTeamRole.ID).
 			SetName(blueTeamRole.Name).
-			Save(b.ClientCtx)
+			Exec(ctx)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		// Create universal Blue category
@@ -94,13 +110,13 @@ func (b *Bot) buildBlue() error {
 			Type: discordgo.ChannelTypeGuildCategory,
 			PermissionOverwrites: []*discordgo.PermissionOverwrite{
 				{ // @everyone
-					ID:    guildID,
+					ID:    config.GuildID,
 					Type:  discordgo.PermissionOverwriteTypeRole,
 					Allow: 0,
 					Deny:  discordgo.PermissionViewChannel,
 				},
 				{ // Red Team
-					ID:    b.getRole("Red Team"),
+					ID:    roleID("Red Team"),
 					Type:  discordgo.PermissionOverwriteTypeRole,
 					Allow: 0,
 					Deny:  discordgo.PermissionViewChannel,
@@ -112,52 +128,54 @@ func (b *Bot) buildBlue() error {
 					Deny:  0,
 				},
 				{ // Black Team
-					ID:    b.getRole("Black Team"),
+					ID:    roleID("Black Team"),
 					Type:  discordgo.PermissionOverwriteTypeRole,
 					Allow: discordgo.PermissionViewChannel,
 					Deny:  0,
 				},
 				{ // White Team
-					ID:    b.getRole("White Team"),
+					ID:    roleID("White Team"),
 					Type:  discordgo.PermissionOverwriteTypeRole,
 					Allow: discordgo.PermissionViewChannel,
 					Deny:  0,
 				},
 				{ // COBI
-					ID:    b.getRole("COBI"),
+					ID:    roleID("COBI"),
 					Type:  discordgo.PermissionOverwriteTypeRole,
 					Allow: discordgo.PermissionViewChannel,
 					Deny:  0,
 				},
 			},
 		}
-		blueTeamCategory, err := b.Session.GuildChannelCreateComplex(guildID, blueTeamCategoryData)
+		blueTeamCategory, err := s.GuildChannelCreateComplex(config.GuildID, blueTeamCategoryData)
 		if err != nil {
 			return err
 		}
 
 		// Create universal Blue channels
-		b.createTextChannelInCategory(blueTeamCategory.ID,
+		err = createTextChannelInCategory(s, blueTeamCategory.ID,
 			"blue-announcements",
 			"blue-general",
 			"blue-questions",
 			"blue-shitposting",
 		)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Iterate over the specified number of Blue Teams
-	log.Printf("Creating resources for %d Blue Teams", numBlueTeams)
-	for i := 1; i <= numBlueTeams; i++ {
+	logging.Info(ctx, fmt.Sprintf("Creating resources for %d Blue Teams", config.NumBlueTeams))
+	for i := 1; i <= config.NumBlueTeams; i++ {
 		name := fmt.Sprintf("Blue Team %d", i)
 
 		// Check if role already exists
-		log.Println(b.getRole(name))
-		if b.getRole(name) == "" {
+		if roleID(name) == "" {
 			textChannel := fmt.Sprintf("blue-%d-chat", i)
 			voiceChannel := fmt.Sprintf("blue-%d-voice", i)
 
 			// Create individual Blue roles
-			blueTeamNRole, err := b.Session.GuildRoleCreate(guildID, &discordgo.RoleParams{
+			blueTeamNRole, err := s.GuildRoleCreate(config.GuildID, &discordgo.RoleParams{
 				Name:        name,
 				Color:       ptr(2123412),
 				Mentionable: ptr(true),
@@ -166,13 +184,13 @@ func (b *Bot) buildBlue() error {
 				return err
 			}
 
-			_, err = b.Client.Role.
+			err = db.Role.
 				Create().
 				SetID(blueTeamNRole.ID).
 				SetName(blueTeamNRole.Name).
-				Save(b.ClientCtx)
+				Exec(ctx)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
 			blueTeamNCategoryData := discordgo.GuildChannelCreateData{
@@ -180,7 +198,7 @@ func (b *Bot) buildBlue() error {
 				Type: discordgo.ChannelTypeGuildCategory,
 				PermissionOverwrites: []*discordgo.PermissionOverwrite{
 					{ // @everyone
-						ID:    guildID,
+						ID:    config.GuildID,
 						Type:  discordgo.PermissionOverwriteTypeRole,
 						Allow: 0,
 						Deny:  discordgo.PermissionViewChannel,
@@ -192,19 +210,19 @@ func (b *Bot) buildBlue() error {
 						Deny:  0,
 					},
 					{ // Black Team
-						ID:    b.getRole("Black Team"),
+						ID:    roleID("Black Team"),
 						Type:  discordgo.PermissionOverwriteTypeRole,
 						Allow: discordgo.PermissionViewChannel,
 						Deny:  0,
 					},
 					{ // Leads
-						ID:    b.getRole("Leads"),
+						ID:    roleID("Leads"),
 						Type:  discordgo.PermissionOverwriteTypeRole,
 						Allow: discordgo.PermissionViewChannel,
 						Deny:  0,
 					},
 					{ // COBI
-						ID:    b.getRole("COBI"),
+						ID:    roleID("COBI"),
 						Type:  discordgo.PermissionOverwriteTypeRole,
 						Allow: discordgo.PermissionViewChannel,
 						Deny:  0,
@@ -212,21 +230,27 @@ func (b *Bot) buildBlue() error {
 				},
 			}
 
-			blueTeamNCategory, err := b.Session.GuildChannelCreateComplex(guildID, blueTeamNCategoryData)
+			blueTeamNCategory, err := s.GuildChannelCreateComplex(config.GuildID, blueTeamNCategoryData)
 			if err != nil {
 				return err
 			}
 
 			// Create text channels
-			b.createTextChannelInCategory(blueTeamNCategory.ID,
+			err = createTextChannelInCategory(s, blueTeamNCategory.ID,
 				"injects-backup",
 				textChannel,
 			)
+			if err != nil {
+				return err
+			}
 
 			// Create voice channels
-			b.createVoiceChannelInCategory(blueTeamNCategory.ID,
+			err = createVoiceChannelInCategory(s, blueTeamNCategory.ID,
 				voiceChannel,
 			)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -235,9 +259,9 @@ func (b *Bot) buildBlue() error {
 
 // createTextChannelInCategory will take a category ID and a collection of channel names,
 // creating text channels under the category
-func (b *Bot) createTextChannelInCategory(catID string, channels ...string) error {
+func createTextChannelInCategory(s *discordgo.Session, catID string, channels ...string) error {
 	for _, channelName := range channels {
-		_, err := b.Session.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
+		_, err := s.GuildChannelCreateComplex(config.GuildID, discordgo.GuildChannelCreateData{
 			Name:     channelName,
 			Type:     discordgo.ChannelTypeGuildText,
 			ParentID: catID,
@@ -251,10 +275,10 @@ func (b *Bot) createTextChannelInCategory(catID string, channels ...string) erro
 }
 
 // createVoiceChannelInCategory will take a category ID and a collection of channel names,
-// creating text channels under the category
-func (b *Bot) createVoiceChannelInCategory(catID string, channels ...string) error {
+// creating voice channels under the category
+func createVoiceChannelInCategory(s *discordgo.Session, catID string, channels ...string) error {
 	for _, channelName := range channels {
-		_, err := b.Session.GuildChannelCreateComplex(guildID, discordgo.GuildChannelCreateData{
+		_, err := s.GuildChannelCreateComplex(config.GuildID, discordgo.GuildChannelCreateData{
 			Name:     channelName,
 			Type:     discordgo.ChannelTypeGuildVoice,
 			ParentID: catID,

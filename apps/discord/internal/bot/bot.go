@@ -1,98 +1,19 @@
 package bot
 
 import (
-	"context"
-	"log"
-	"os"
-	"strconv"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/ritsec/competition-ops-bot-i/ent"
-	"github.com/ritsec/competition-ops-bot-i/internal/connections"
+	"github.com/ritsec/competition-ops-bot-i/internal/commands"
+	"github.com/ritsec/competition-ops-bot-i/internal/database"
+	"github.com/ritsec/competition-ops-bot-i/internal/logging"
 )
 
-type Bot struct {
-	Session   *discordgo.Session
-	Client    *ent.Client
-	ClientCtx context.Context
+// InitDB will connect to the MySQL database and return the Ent client
+func InitDB() *ent.Client {
+	return database.Connect()
 }
 
-var (
-	token           = os.Getenv("DISCORD_TOKEN")
-	guildID         = os.Getenv("DISCORD_GUILD")
-	appID           = os.Getenv("DISCORD_APP")
-	numBlueTeams, _ = strconv.Atoi(os.Getenv("BLUE_TEAMS"))
-
-	// SlashCommands is a map of all slash commands
-	slashCommands map[string]func() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)) = make(map[string]func() (*discordgo.ApplicationCommand, func(s *discordgo.Session, i *discordgo.InteractionCreate)))
-
-	// SlashCommandHandlers is a map of all slash command handlers
-	slashCommandHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) = make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate))
-
-	ComponentHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate) = make(map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate))
-
-	// For the future, COBI should handle server setup as well.
-)
-
-// Start will create and set the global session for the bot class
-func (b *Bot) Start() {
-	session, err := discordgo.New("Bot " + token)
-	if err != nil {
-		panic(err)
-	}
-
-	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
-	session.State.MaxMessageCount = 50
-	b.Session = session
-
-	// Populate the SlashCommands map
-	slashCommands["ssh"] = b.SSH
-	slashCommands["team"] = b.Team
-	slashCommands["refresh"] = b.Refresh
-	slashCommands["query"] = b.Query
-	slashCommands["creds"] = b.Creds
-	slashCommands["test"] = b.TestFunc
-	// slashCommands["server"] = b.Server
-
-	// Register slash commands
-	b.registerSlashCommands()
-
-	// Add all handlers
-	b.Session.AddHandler(func(
-		s *discordgo.Session,
-		i *discordgo.InteractionCreate,
-	) {
-		switch i.Type {
-		case discordgo.InteractionApplicationCommand:
-			data := i.ApplicationCommandData()
-
-			if command, ok := slashCommandHandlers[data.Name]; ok {
-				command(s, i)
-			}
-
-		case discordgo.InteractionModalSubmit:
-			if command, ok := ComponentHandlers[i.ModalSubmitData().CustomID]; ok {
-				command(s, i)
-			}
-		}
-	})
-
-	b.Session.AddHandler(b.Join)
-}
-
-// InitDB will connect to the MySQL database and set the global Client
-func (b *Bot) InitDB() {
-	b.Client, b.ClientCtx = connections.Connect()
-}
-
-func (b *Bot) registerSlashCommands() {
-	for _, slashFunc := range slashCommands {
-		command, handler := slashFunc()
-		_, err := b.Session.ApplicationCommandCreate(appID, guildID, command)
-		if err != nil {
-			log.Fatalf("failed registering slash command %s", command.Name)
-		}
-
-		slashCommandHandlers[command.Name] = handler
-	}
+func Init(s *discordgo.Session, ctx logging.Context, db *ent.Client) {
+	commands.RegisterSlashCommands(s, ctx, db)
+	s.AddHandler(Join(db))
 }

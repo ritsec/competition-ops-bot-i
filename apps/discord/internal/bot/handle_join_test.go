@@ -10,36 +10,27 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ritsec/competition-ops-bot-i/ent/role"
 	"github.com/ritsec/competition-ops-bot-i/ent/user"
+	"github.com/ritsec/competition-ops-bot-i/internal/database"
 )
 
 func Test(t *testing.T) { TestingT(t) }
 
 func (h *handlerSuite) TestJoinBlue(c *C) {
-	// Create instance of bot to use its methods for setup
-	// and testing
-	bot := &Bot{
-		Session:   h.session,
-		Client:    h.client,
-		ClientCtx: h.ctx,
-	}
-
-	// Create mock CSV entry array
-	mockCSV := []*Blue{
-		{
-			School:    "foo",
-			TeamNum:   "1",
-			Teammate1: h.member.User.Username,
-		},
-	}
-
-	// Populate database
-	err := bot.handleBlue(mockCSV)
+	// Populate database with Blue Team 1 and the mock member
+	t, err := database.GetBlue(h.ctx, h.client, 1)
 	if err != nil {
+		c.Fatal(err)
+	}
+	u, err := database.CreateUser(h.ctx, h.client, h.member.User.Username)
+	if err != nil {
+		c.Fatal(err)
+	}
+	if err := h.client.Team.UpdateOne(t).AddUser(u).Exec(h.ctx); err != nil {
 		c.Fatal(err)
 	}
 
 	// Simulate event of member join
-	bot.Join(h.session, &discordgo.GuildMemberAdd{
+	Join(h.client)(h.session, &discordgo.GuildMemberAdd{
 		Member: h.member,
 	})
 
